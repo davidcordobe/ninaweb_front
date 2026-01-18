@@ -118,6 +118,7 @@ function clearAdminSession() {
     authToken = null;
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('adminUsername');
 }
 
 window.addEventListener('beforeunload', clearAdminSession);
@@ -800,19 +801,10 @@ loginForm.addEventListener('submit', async (e) => {
         adminUsername.value = '';
         loadAdminPanel();
     } catch (error) {
-        // Si falla el backend, intentar con contraseña local
-        const savedPassword = localStorage.getItem('adminPassword') || DEFAULT_PASSWORD;
-        if (password === savedPassword) {
-            localStorage.setItem('adminLoggedIn', 'true');
-            loginModal.style.display = 'none';
-            adminPanel.style.display = 'flex';
-            adminPassword.value = '';
-            adminUsername.value = '';
-            loadAdminPanel();
-        } else {
-            alert('Contraseña incorrecta: ' + error.message);
-            adminPassword.value = '';
-        }
+        // No permitir fallback local: sólo credenciales válidas del backend
+        alert('Login fallido: ' + (error.message || 'Intenta de nuevo'));
+        localStorage.setItem('adminLoggedIn', 'false');
+        adminPassword.value = '';
     }
 });
 
