@@ -1850,7 +1850,13 @@ const defaultTypography = {
 };
 
 function loadTypographyIntoPanel(typography) {
-    document.getElementById('primaryFont').value = typography.primaryFont || defaultTypography.primaryFont;
+    const primaryFontSelect = document.getElementById('primaryFont');
+    const isCustom = typography.customFontName || typography.googleFontsUrl;
+    if (isCustom && primaryFontSelect) {
+        primaryFontSelect.value = 'custom';
+    } else if (primaryFontSelect) {
+        primaryFontSelect.value = typography.primaryFont || defaultTypography.primaryFont;
+    }
     document.getElementById('h1Size').value = parseInt(typography.h1Size) || 48;
     document.getElementById('h2Size').value = parseInt(typography.h2Size) || 32;
     document.getElementById('bodySize').value = parseInt(typography.bodySize) || 16;
