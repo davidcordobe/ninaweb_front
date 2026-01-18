@@ -433,8 +433,7 @@ const adminPassword = document.getElementById('adminPassword');
 const closeAdmin = document.getElementById('closeAdmin');
 const logoutBtn = document.getElementById('logoutBtn');
 
-// Contraseña predeterminada (se puede cambiar desde el panel)
-const DEFAULT_PASSWORD = 'Tomas271217';
+
 
 // Estado del carrusel de testimonios
 const testimonialSliderState = {
