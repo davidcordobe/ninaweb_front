@@ -466,13 +466,15 @@
                     </div>
                     <div class="form-group" id="customFontGroup" style="display: none;">
                         <label>Nombre de la Fuente (Google Fonts)</label>
-                        <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
-                            <input type="text" id="customFontName" class="font-input" placeholder="Ej: Dancing Script" style="flex: 1;">
-                            <button type="button" id="generateUrlBtn" class="save-btn" style="padding: 0.75rem 1rem; font-size: 0.9rem; white-space: nowrap;">Generar URL</button>
-                        </div>
-                        <small style="color: var(--text-light); font-size: 0.8rem;">
-                            Ingresa el nombre exacto de la fuente de Google Fonts
-                        </small>
+                            <div style="display: flex; gap: 0.5rem; align-items: flex-start; flex-wrap: wrap;">
+                                <input type="text" id="customFontName" class="font-input" placeholder="Ej: Dancing Script" style="flex: 1; min-width: 220px;" list="googleFontsList">
+                                <button type="button" id="loadGoogleFontsBtn" class="save-btn" style="padding: 0.75rem 1rem; font-size: 0.9rem; white-space: nowrap;">Cargar lista</button>
+                                <button type="button" id="generateUrlBtn" class="save-btn" style="padding: 0.75rem 1rem; font-size: 0.9rem; white-space: nowrap;">Generar URL</button>
+                            </div>
+                            <datalist id="googleFontsList"></datalist>
+                            <small id="googleFontsStatus" style="color: var(--text-light); font-size: 0.8rem; display: block; margin-top: 0.35rem;">
+                                Pulsa "Cargar lista" para ver todas las fuentes de Google Fonts (requiere API key).
+                            </small>
                     </div>
                     <div class="form-group" id="googleFontsUrlGroup" style="display: none;">
                         <label>URL de Google Fonts</label>

@@ -1835,6 +1835,11 @@ function resetLogo() {
 }
 
 // ===== Typography Functions =====
+const GOOGLE_FONTS_API_KEY = 'AIzaSyClmA9etOvOqCm0Mb7d639Gj9UbIsAKj6Y'; // Coloca tu API key de Google Fonts si quieres listar todas las fuentes
+let googleFontsCatalog = [];
+let googleFontsLoading = false;
+let googleFontsLoaded = false;
+
 const defaultTypography = {
     primaryFont: "'Poppins', sans-serif",
     h1Size: '48px',
@@ -1875,6 +1880,56 @@ function updateTypographyValues() {
     document.getElementById('h2SizeValue').textContent = document.getElementById('h2Size').value + 'px';
     document.getElementById('bodySizeValue').textContent = document.getElementById('bodySize').value + 'px';
     document.getElementById('lineHeightValue').textContent = document.getElementById('lineHeight').value;
+}
+
+function setGoogleFontsStatus(message, isError = false) {
+    const statusEl = document.getElementById('googleFontsStatus');
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.style.color = isError ? 'var(--primary)' : 'var(--text-light)';
+}
+
+function renderGoogleFontsList() {
+    const listEl = document.getElementById('googleFontsList');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    googleFontsCatalog.forEach((fontName) => {
+        const opt = document.createElement('option');
+        opt.value = fontName;
+        listEl.appendChild(opt);
+    });
+}
+
+async function loadGoogleFontsCatalog() {
+    if (googleFontsLoaded || googleFontsLoading) return googleFontsCatalog;
+
+    if (!GOOGLE_FONTS_API_KEY) {
+        setGoogleFontsStatus('Falta API key de Google Fonts. Añádela en script.js en GOOGLE_FONTS_API_KEY.', true);
+        alert('Para listar todas las fuentes de Google Fonts necesitas colocar tu API key en script.js (const GOOGLE_FONTS_API_KEY).');
+        return [];
+    }
+
+    googleFontsLoading = true;
+    setGoogleFontsStatus('Cargando catálogo de Google Fonts...');
+
+    try {
+        const response = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?sort=alpha&key=${GOOGLE_FONTS_API_KEY}`);
+        if (!response.ok) {
+            throw new Error(`Error HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        googleFontsCatalog = (data.items || []).map((item) => item.family).filter(Boolean);
+        renderGoogleFontsList();
+        googleFontsLoaded = true;
+        setGoogleFontsStatus(`Fuentes disponibles: ${googleFontsCatalog.length}`);
+    } catch (error) {
+        console.error('No se pudo cargar el catálogo de Google Fonts:', error);
+        setGoogleFontsStatus('No se pudo cargar el catálogo. Revisa la API key o tu conexión.', true);
+    } finally {
+        googleFontsLoading = false;
+    }
+
+    return googleFontsCatalog;
 }
 
 async function saveTypography() {
@@ -2042,6 +2097,16 @@ function generateGoogleFontsUrl(fontName) {
     return `https://fonts.googleapis.com/css2?family=${formattedName}:wght@300;400;500;600;700&display=swap`;
 }
 
+function handleCustomFontSelected() {
+    const fontName = document.getElementById('customFontName')?.value?.trim();
+    if (!fontName) return;
+    const url = generateGoogleFontsUrl(fontName);
+    const urlInput = document.getElementById('googleFontsUrl');
+    if (urlInput) {
+        urlInput.value = url;
+    }
+}
+
 // ===== Inicializar en DOM listo =====
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Landing page cargada correctamente');
@@ -2068,6 +2133,26 @@ function initializeTypographyListeners() {
     const primaryFontSelect = document.getElementById('primaryFont');
     if (primaryFontSelect) {
         primaryFontSelect.addEventListener('change', toggleCustomFontFields);
+    }
+
+    // Botón para cargar catálogo completo de Google Fonts
+    const loadGoogleFontsBtn = document.getElementById('loadGoogleFontsBtn');
+    if (loadGoogleFontsBtn) {
+        loadGoogleFontsBtn.addEventListener('click', () => {
+            loadGoogleFontsCatalog();
+        });
+    }
+
+    // Input de fuente personalizada: cargar lista al enfocar y autogenerar URL al elegir
+    const customFontInput = document.getElementById('customFontName');
+    if (customFontInput) {
+        customFontInput.addEventListener('focus', () => {
+            if (!googleFontsLoaded && !googleFontsLoading) {
+                loadGoogleFontsCatalog();
+            }
+        });
+        customFontInput.addEventListener('change', handleCustomFontSelected);
+        customFontInput.addEventListener('input', handleCustomFontSelected);
     }
 
     // Event listener para generar URL de Google Fonts
