@@ -1891,6 +1891,7 @@ function setGoogleFontsStatus(message, isError = false) {
 
 function renderGoogleFontsList() {
     const listEl = document.getElementById('googleFontsList');
+    const containerEl = document.getElementById('googleFontsListContainer');
     if (!listEl) return;
     listEl.innerHTML = '';
     googleFontsCatalog.forEach((fontName) => {
@@ -1898,6 +1899,32 @@ function renderGoogleFontsList() {
         opt.value = fontName;
         listEl.appendChild(opt);
     });
+
+    if (containerEl) {
+        containerEl.innerHTML = '';
+        if (googleFontsCatalog.length === 0) {
+            containerEl.style.display = 'none';
+        } else {
+            // Mostrar lista visible, limitada para no saturar (ej. 400 primeras)
+            const limit = Math.min(googleFontsCatalog.length, 400);
+            for (let i = 0; i < limit; i++) {
+                const fontName = googleFontsCatalog[i];
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = fontName;
+                btn.style.fontFamily = `'${fontName}', sans-serif`;
+                btn.onclick = () => {
+                    const input = document.getElementById('customFontName');
+                    if (input) {
+                        input.value = fontName;
+                        handleCustomFontSelected();
+                    }
+                };
+                containerEl.appendChild(btn);
+            }
+            containerEl.style.display = 'block';
+        }
+    }
 }
 
 async function loadGoogleFontsCatalog() {

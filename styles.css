@@ -1670,6 +1670,23 @@ hr {
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+/* Google Fonts list popup */
+#googleFontsListContainer button {
+    width: 100%;
+    text-align: left;
+    padding: 0.4rem 0.55rem;
+    border: none;
+    background: transparent;
+    color: var(--text-dark);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+}
+
+#googleFontsListContainer button:hover {
+    background: rgba(102, 126, 234, 0.08);
+}
+
 .size-value {
     display: inline-block;
     margin-left: 0.5rem;
