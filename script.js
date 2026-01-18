@@ -1915,7 +1915,8 @@ async function loadGoogleFontsCatalog() {
     try {
         const response = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?sort=alpha&key=${GOOGLE_FONTS_API_KEY}`);
         if (!response.ok) {
-            throw new Error(`Error HTTP ${response.status}`);
+            const bodyText = await response.text();
+            throw new Error(`HTTP ${response.status} - ${bodyText || 'sin detalle'}`);
         }
         const data = await response.json();
         googleFontsCatalog = (data.items || []).map((item) => item.family).filter(Boolean);
@@ -1925,6 +1926,7 @@ async function loadGoogleFontsCatalog() {
     } catch (error) {
         console.error('No se pudo cargar el catálogo de Google Fonts:', error);
         setGoogleFontsStatus('No se pudo cargar el catálogo. Revisa la API key o tu conexión.', true);
+        alert('Error al cargar catálogo de Google Fonts: ' + error.message);
     } finally {
         googleFontsLoading = false;
     }
