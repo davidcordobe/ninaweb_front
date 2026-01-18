@@ -466,7 +466,9 @@ function goToTestimonialSlide(index) {
     const slides = slider.querySelectorAll('.testimonial-slide');
     testimonialSliderState.currentIndex = (index + slides.length) % slides.length;
 
-    slider.style.transform = `translateX(-${testimonialSliderState.currentIndex * 100}%)`;
+    // Mover exactamente un ancho de slide: el porcentaje es relativo al ancho total del track
+    const slideWidthPct = 100 / slides.length;
+    slider.style.transform = `translateX(-${testimonialSliderState.currentIndex * slideWidthPct}%)`;
 
     slides.forEach((slide, i) => {
         slide.classList.toggle('active', i === testimonialSliderState.currentIndex);
