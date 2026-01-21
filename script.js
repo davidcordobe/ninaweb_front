@@ -1574,7 +1574,7 @@ navLinks.forEach(link => {
         this.style.color = 'var(--primary)';
     });
     link.addEventListener('mouseleave', function () {
-        this.style.color = 'var(--text-dark)';
+        this.style.color = 'var(--navbar-text)';
     });
 });
 
