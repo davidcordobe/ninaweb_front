@@ -724,6 +724,18 @@ function applyPageData(data) {
             whatsappLink.href = `https://wa.me/${data.contact.whatsapp}?text=Hola%20Nina,%20me%20interesa%20tus%20servicios%20de%20creación%20de%20contenido`;
         }
 
+        // WhatsApp del bloque de contacto
+        const contactWhatsappBtn = document.querySelector('.whatsapp-btn');
+        if (contactWhatsappBtn && data.contact.whatsapp) {
+            contactWhatsappBtn.href = `https://wa.me/${data.contact.whatsapp}?text=Hola%20Nina,%20me%20interesa%20tus%20servicios`;
+        }
+
+        // Email del bloque de contacto
+        const contactEmailEl = document.querySelector('.contact-info .info-item:nth-child(2) p');
+        if (contactEmailEl && data.contact.email) {
+            contactEmailEl.textContent = data.contact.email;
+        }
+
         // Actualizar links de redes sociales
         const socialLinks = document.querySelectorAll('.social-link');
         if (socialLinks.length >= 3) {
