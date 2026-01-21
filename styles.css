@@ -914,7 +914,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-dark);
+    color: var(--navbar-text);
     transition: var(--transition);
     margin-left: 1rem;
 }
