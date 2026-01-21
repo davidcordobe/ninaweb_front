@@ -1604,6 +1604,7 @@ const defaultColors = {
     textLight: '#666',
     bgLight: '#f5f7fa',
     bgWhite: '#ffffff',
+    contactBg: '#ffffff',
     bgCard: '#ffffff',
     borderColor: '#e0e0e0',
     inputBg: '#ffffff',
@@ -1666,6 +1667,7 @@ function applyColors(colors) {
     root.style.setProperty('--text-light', colors.textLight || defaultColors.textLight);
     root.style.setProperty('--bg-light', colors.bgLight || defaultColors.bgLight);
     root.style.setProperty('--bg-white', colors.bgWhite || defaultColors.bgWhite);
+    root.style.setProperty('--contact-bg', colors.contactBg || defaultColors.contactBg);
     root.style.setProperty('--bg-card', colors.bgCard || defaultColors.bgCard);
     root.style.setProperty('--border-color', colors.borderColor || defaultColors.borderColor);
     root.style.setProperty('--input-bg', colors.inputBg || colors.bgCard || defaultColors.inputBg);
@@ -1699,6 +1701,9 @@ function loadColorsIntoPanel() {
     document.getElementById('bgWhiteColor').value = colors.bgWhite || defaultColors.bgWhite;
     document.getElementById('bgWhiteColorHex').value = colors.bgWhite || defaultColors.bgWhite;
 
+    document.getElementById('contactBgColor').value = colors.contactBg || defaultColors.contactBg;
+    document.getElementById('contactBgColorHex').value = colors.contactBg || defaultColors.contactBg;
+
     document.getElementById('bgCardColor').value = colors.bgCard || defaultColors.bgCard;
     document.getElementById('bgCardColorHex').value = colors.bgCard || defaultColors.bgCard;
 
@@ -1719,6 +1724,7 @@ function loadColorsIntoPanel() {
     linkColorInputs('textLightColor', 'textLightColorHex');
     linkColorInputs('bgLightColor', 'bgLightColorHex');
     linkColorInputs('bgWhiteColor', 'bgWhiteColorHex');
+    linkColorInputs('contactBgColor', 'contactBgColorHex');
     linkColorInputs('bgCardColor', 'bgCardColorHex');
     linkColorInputs('borderColor', 'borderColorHex');
     linkColorInputs('navbarBgColor', 'navbarBgColorHex');
@@ -1751,6 +1757,7 @@ async function saveColors() {
         textLight: document.getElementById('textLightColor').value,
         bgLight: document.getElementById('bgLightColor').value,
         bgWhite: document.getElementById('bgWhiteColor').value,
+        contactBg: document.getElementById('contactBgColor').value,
         bgCard: document.getElementById('bgCardColor').value,
         borderColor: document.getElementById('borderColor').value,
         inputBg: document.getElementById('bgCardColor').value,

@@ -8,6 +8,7 @@
     --text-muted: #999;
     --bg-light: #f5f7fa;
     --bg-white: #ffffff;
+    --contact-bg: #ffffff;
     --bg-card: #ffffff;
     --border-color: #e0e0e0;
     --input-bg: #ffffff;
@@ -619,7 +620,7 @@ body {
 /* ===== Contact Section ===== */
 .contact {
     padding: 100px 0;
-    background: var(--bg-white);
+    background: var(--contact-bg);
 }
 
 .contact-content {
