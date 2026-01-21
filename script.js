@@ -1004,20 +1004,31 @@ function applyAdminPanelData(data) {
 }
 
 // Guardar Hero
-function saveHeroContent() {
+async function saveHeroContent() {
     const data = JSON.parse(localStorage.getItem('pageData') || '{}');
     data.hero = {
         title: document.getElementById('heroTitle').value,
         subtitle: document.getElementById('heroSubtitle').value,
         description: document.getElementById('heroDescription').value
     };
+
     localStorage.setItem('pageData', JSON.stringify(data));
-    loadPageData();
-    alert('Cambios guardados en la sección Hero');
+
+    showLoading('Guardando hero...');
+    try {
+        await savePageData(data);
+        loadPageData();
+        alert('Cambios guardados en la sección Hero');
+    } catch (error) {
+        console.error('Error al guardar hero:', error);
+        alert(`No se pudo guardar en el servidor: ${error.message}`);
+    } finally {
+        hideLoading();
+    }
 }
 
 // Guardar About
-function saveAboutContent() {
+async function saveAboutContent() {
     const data = JSON.parse(localStorage.getItem('pageData') || '{}');
     const features = [];
     document.querySelectorAll('.feature-edit .feature-input').forEach(input => {
@@ -1029,9 +1040,20 @@ function saveAboutContent() {
         text2: document.getElementById('aboutText2').value,
         features: features
     };
+
     localStorage.setItem('pageData', JSON.stringify(data));
-    loadPageData();
-    alert('Cambios guardados en Acerca de Mí');
+
+    showLoading('Guardando Acerca de Mí...');
+    try {
+        await savePageData(data);
+        loadPageData();
+        alert('Cambios guardados en Acerca de Mí');
+    } catch (error) {
+        console.error('Error al guardar Acerca de Mí:', error);
+        alert(`No se pudo guardar en el servidor: ${error.message}`);
+    } finally {
+        hideLoading();
+    }
 }
 
 // Agregar nueva característica
@@ -1364,7 +1386,7 @@ function addTestimonial() {
 }
 
 // Guardar Contacto
-function saveContactContent() {
+async function saveContactContent() {
     const data = JSON.parse(localStorage.getItem('pageData') || '{}');
 
     data.contact = {
@@ -1376,8 +1398,18 @@ function saveContactContent() {
     };
 
     localStorage.setItem('pageData', JSON.stringify(data));
-    alert('Contacto guardado');
-    loadPageData();
+
+    showLoading('Guardando contacto...');
+    try {
+        await savePageData(data);
+        alert('Contacto guardado');
+        loadPageData();
+    } catch (error) {
+        console.error('Error al guardar contacto:', error);
+        alert(`No se pudo guardar en el servidor: ${error.message}`);
+    } finally {
+        hideLoading();
+    }
 }
 
 // Tabs del admin panel
