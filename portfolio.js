@@ -147,14 +147,32 @@ function renderPortfolio(items = []) {
 async function loadPortfolio() {
     try {
         setStatus('Cargando portafolio...');
-        const data = await apiCall('/api/content/page-data');
+        let data = await apiCall('/api/content/page-data');
+
+        // Si el backend no trae portafolio pero existe uno en localStorage, mantenerlo
+        try {
+            const localBackup = JSON.parse(localStorage.getItem('pageData') || '{}');
+            if ((!data.portfolio || data.portfolio.length === 0) && Array.isArray(localBackup.portfolio) && localBackup.portfolio.length > 0) {
+                data.portfolio = localBackup.portfolio;
+            }
+            localStorage.setItem('pageData', JSON.stringify(data));
+        } catch (e) {
+            console.warn('No se pudo fusionar portafolio local en portfolio.js:', e.message);
+        }
+
         renderPortfolio(data.portfolio || []);
         setStatus('');
     } catch (error) {
         console.error('Error al cargar portafolio:', error);
         setStatus('No se pudo cargar el portafolio. Intenta nuevamente.');
-        if (portfolioGrid) {
-            portfolioGrid.innerHTML = '<div class="portfolio-empty">Error al cargar datos.</div>';
+        // Fallback a localStorage
+        try {
+            const localBackup = JSON.parse(localStorage.getItem('pageData') || '{}');
+            renderPortfolio(localBackup.portfolio || []);
+        } catch (e) {
+            if (portfolioGrid) {
+                portfolioGrid.innerHTML = '<div class="portfolio-empty">Error al cargar datos.</div>';
+            }
         }
     }
 }
