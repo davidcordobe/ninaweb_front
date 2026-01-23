@@ -1606,6 +1606,9 @@ function addPortfolioItem(item = {}) {
     const container = document.getElementById('portfolioContainer');
     if (!container) return;
 
+    // Normalizar URL existente para que no quede con localhost y sanear embeds
+    const normalizedVideoUrl = sanitizeVideoUrl(normalizeMediaUrl(item.videoUrl || ''));
+
     const wrapper = document.createElement('div');
     wrapper.className = 'portfolio-edit';
     wrapper.innerHTML = `
@@ -1624,7 +1627,7 @@ function addPortfolioItem(item = {}) {
                 <button type="button" class="upload-portfolio-video-btn" style="flex: 0 0 auto;">Subir y usar</button>
             </div>
             <div class="portfolio-video-upload-status" style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.35rem;"></div>
-            <input type="url" class="portfolio-video" placeholder="https://www.youtube.com/watch?v=..." value="${item.videoUrl || ''}" style="margin-top: 0.35rem;">
+            <input type="url" class="portfolio-video" placeholder="https://www.youtube.com/watch?v=..." value="${normalizedVideoUrl || ''}" style="margin-top: 0.35rem;">
             <small class="input-hint">Puedes pegar un enlace (YouTube, CDN) o subir un archivo; si subes, se guarda en el servidor y se autocompleta el campo.</small>
         </div>
         <div class="form-group">
@@ -1688,7 +1691,7 @@ async function savePortfolio() {
 
     document.querySelectorAll('.portfolio-edit').forEach(block => {
         const rawUrl = block.querySelector('.portfolio-video')?.value;
-        const videoUrl = sanitizeVideoUrl(rawUrl);
+        const videoUrl = sanitizeVideoUrl(normalizeMediaUrl(rawUrl));
         if (!videoUrl) return; // ignorar entradas vacias
 
         entries.push({
