@@ -114,7 +114,12 @@ async function logout() {
 }
 
 // Limpiar sesión al cerrar/recargar la pestaña para evitar cacheos no deseados
+function isRemembered() {
+    return localStorage.getItem('rememberAdmin') === 'true';
+}
+
 function clearAdminSession() {
+    if (isRemembered()) return; // si eligió recordar, no borrar
     authToken = null;
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminLoggedIn');
@@ -901,6 +906,10 @@ function getYoutubeEmbedUrl(url) {
 function showLoginModal() {
     loginModal.style.display = 'flex';
     adminPanel.style.display = 'none';
+    const rememberCheckbox = document.getElementById('rememberMe');
+    if (rememberCheckbox) {
+        rememberCheckbox.checked = isRemembered();
+    }
 }
 
 // Verificar login
@@ -919,15 +928,19 @@ loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = adminUsername.value.trim();
     const password = adminPassword.value;
+    const remember = document.getElementById('rememberMe')?.checked;
 
     try {
         // Intentar login con backend
         const result = await login(username, password);
         localStorage.setItem('adminLoggedIn', 'true');
+        localStorage.setItem('rememberAdmin', remember ? 'true' : 'false');
         loginModal.style.display = 'none';
         adminPanel.style.display = 'flex';
         adminPassword.value = '';
         adminUsername.value = '';
+        const rememberCheckbox = document.getElementById('rememberMe');
+        if (rememberCheckbox) rememberCheckbox.checked = remember;
         loadAdminPanel();
     } catch (error) {
         // No permitir fallback local: sólo credenciales válidas del backend
@@ -944,6 +957,7 @@ closeAdmin.addEventListener('click', () => {
 
 logoutBtn.addEventListener('click', () => {
     localStorage.setItem('adminLoggedIn', 'false');
+    localStorage.removeItem('rememberAdmin');
     adminPanel.style.display = 'none';
     loginModal.style.display = 'flex';
 });
@@ -2398,6 +2412,9 @@ function handleCustomFontSelected() {
 // ===== Inicializar en DOM listo =====
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Landing page cargada correctamente');
+    if (isRemembered() && localStorage.getItem('adminToken')) {
+        localStorage.setItem('adminLoggedIn', 'true');
+    }
     loadPageData();
     loadColors();
     loadLogo();
