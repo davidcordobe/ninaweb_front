@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portafolio de Video - Nina Multipotencial</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo" id="navLogo">Nina</div>
+            <ul class="nav-menu">
+                <li><a href="index.html#inicio" class="nav-link">Inicio</a></li>
+                <li><a href="index.html#servicios" class="nav-link">Servicios</a></li>
+                <li><a href="portfolio.html" class="nav-link" aria-current="page">Portafolio</a></li>
+                <li><a href="index.html#contacto" class="nav-link">Contacto</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="portfolio-hero">
+        <div class="container">
+            <div class="portfolio-hero-content">
+                <p class="eyebrow">Seleccion de trabajos</p>
+                <h1>Portafolio en video</h1>
+                <p class="hero-kicker">Todas estas tarjetas se cargan desde el panel: usa links de YouTube o videos hosteados y cada item tendra su propio reproductor.</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="portfolio" id="portfolio">
+        <div class="container">
+            <div class="portfolio-header">
+                <div>
+                    <h2 class="section-title">Reel de proyectos</h2>
+                    <p class="portfolio-subtitle">Puedes editar, agregar o ocultar videos desde el panel sin tocar codigo.</p>
+                </div>
+                <div class="portfolio-legend">
+                    <span class="legend-dot legend-live"></span><span>Video en streaming</span>
+                    <span class="legend-dot legend-file"></span><span>Archivo subido/hosteado</span>
+                </div>
+            </div>
+            <div id="portfolioStatus" class="portfolio-subtitle" style="margin-bottom:1rem; display:none;"></div>
+            <div class="portfolio-grid" id="portfolioGrid"></div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Nina Multipotencial. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="portfolio.js"></script>
+</body>
+</html>

@@ -351,6 +351,35 @@ body {
     background: var(--bg-light);
 }
 
+.portfolio-hero {
+    margin-top: 60px;
+    padding: 120px 0 60px 0;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+}
+
+.portfolio-hero-content {
+    max-width: 760px;
+}
+
+.portfolio-hero h1 {
+    font-size: 2.75rem;
+    margin: 0.5rem 0;
+}
+
+.hero-kicker {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.7;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
 .portfolio-header {
     display: flex;
     justify-content: space-between;
