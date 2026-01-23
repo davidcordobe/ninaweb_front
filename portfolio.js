@@ -155,7 +155,14 @@ async function loadPortfolio() {
             if ((!data.portfolio || data.portfolio.length === 0) && Array.isArray(localBackup.portfolio) && localBackup.portfolio.length > 0) {
                 data.portfolio = localBackup.portfolio;
             }
+            if ((!data.portfolio || data.portfolio.length === 0)) {
+                const portfolioBackup = JSON.parse(localStorage.getItem('portfolioBackup') || '[]');
+                if (Array.isArray(portfolioBackup) && portfolioBackup.length > 0) {
+                    data.portfolio = portfolioBackup;
+                }
+            }
             localStorage.setItem('pageData', JSON.stringify(data));
+            localStorage.setItem('portfolioBackup', JSON.stringify(data.portfolio || []));
         } catch (e) {
             console.warn('No se pudo fusionar portafolio local en portfolio.js:', e.message);
         }
@@ -168,7 +175,11 @@ async function loadPortfolio() {
         // Fallback a localStorage
         try {
             const localBackup = JSON.parse(localStorage.getItem('pageData') || '{}');
-            renderPortfolio(localBackup.portfolio || []);
+            let entries = localBackup.portfolio || [];
+            if ((!entries || entries.length === 0)) {
+                entries = JSON.parse(localStorage.getItem('portfolioBackup') || '[]');
+            }
+            renderPortfolio(entries || []);
         } catch (e) {
             if (portfolioGrid) {
                 portfolioGrid.innerHTML = '<div class="portfolio-empty">Error al cargar datos.</div>';

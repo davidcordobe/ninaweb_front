@@ -995,6 +995,13 @@ async function loadAdminPanel() {
             if ((!data.portfolio || data.portfolio.length === 0) && Array.isArray(localData.portfolio)) {
                 data.portfolio = localData.portfolio;
             }
+            // Refuerzo: si tampoco hay en pageData, usar respaldo dedicado
+            if ((!data.portfolio || data.portfolio.length === 0)) {
+                const backup = JSON.parse(localStorage.getItem('portfolioBackup') || '[]');
+                if (Array.isArray(backup) && backup.length > 0) {
+                    data.portfolio = backup;
+                }
+            }
             // Guardar respaldo actualizado
             localStorage.setItem('pageData', JSON.stringify(data));
         } catch (e) {
@@ -1013,6 +1020,14 @@ async function loadAdminPanel() {
 }
 
 function applyAdminPanelData(data) {
+    // Asegurar portafolio usando respaldos locales si viene vacío
+    if (!data.portfolio || data.portfolio.length === 0) {
+        const backup = JSON.parse(localStorage.getItem('portfolioBackup') || '[]');
+        if (Array.isArray(backup) && backup.length > 0) {
+            data.portfolio = backup;
+        }
+    }
+
     document.getElementById('heroTitle').value = data.hero?.title || 'Nina Multipotencial';
     document.getElementById('heroSubtitle').value = data.hero?.subtitle || 'Creadora de Contenido UGC & Edición de Video Profesional';
     document.getElementById('heroDescription').value = data.hero?.description || 'Transformo ideas en contenido visual impactante...';
@@ -1506,6 +1521,7 @@ async function savePortfolio() {
 
     data.portfolio = entries;
     localStorage.setItem('pageData', JSON.stringify(data));
+    localStorage.setItem('portfolioBackup', JSON.stringify(entries));
 
     showLoading('Guardando portafolio...');
     try {
