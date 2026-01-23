@@ -1,15 +1,38 @@
 // ===== API CLIENT - Integrado Directamente =====
 
 // Detectar si estamos en desarrollo o producción
-const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isFileProtocol = window.location.protocol === 'file:';
+const isDevelopment = isFileProtocol || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const PROD_API_BASE_URL = 'https://ninamulti-back.onrender.com';
 
 // Producción: usa siempre el backend deployado en Render
-// Desarrollo: localhost
+// Desarrollo o file:// : localhost
 const API_BASE_URL = isDevelopment ? 'http://localhost:5001' : PROD_API_BASE_URL;
 
 // Normalizar URLs de imágenes que quedaron apuntando a localhost
 function normalizeImageUrl(url) {
+    if (!url) return url;
+    const localhostBases = [
+        'http://localhost:5001',
+        'http://127.0.0.1:5001',
+        'https://localhost:5001',
+        'https://127.0.0.1:5001'
+    ];
+
+    for (const base of localhostBases) {
+        if (url.startsWith(base)) {
+            return url.replace(base, API_BASE_URL);
+        }
+    }
+
+    if (url.startsWith('/uploads')) {
+        return `${API_BASE_URL}${url}`;
+    }
+
+    return url;
+}
+
+function normalizeMediaUrl(url) {
     if (!url) return url;
     const localhostBases = [
         'http://localhost:5001',
@@ -111,15 +134,19 @@ async function login(username, password) {
 async function logout() {
     authToken = null;
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('adminUsername');
+    if (!isRemembered()) {
+        localStorage.removeItem('rememberAdmin');
+    }
 }
 
-// Limpiar sesión al cerrar/recargar la pestaña para evitar cacheos no deseados
 function isRemembered() {
     return localStorage.getItem('rememberAdmin') === 'true';
 }
 
 function clearAdminSession() {
-    if (isRemembered()) return; // si eligió recordar, no borrar
+    if (isRemembered()) return;
     authToken = null;
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminLoggedIn');
@@ -127,55 +154,6 @@ function clearAdminSession() {
 }
 
 window.addEventListener('beforeunload', clearAdminSession);
-
-// Verificar token
-async function verifyToken() {
-    try {
-        return await apiCall('/api/auth/verify', 'GET', null, true);
-    } catch (error) {
-        return false;
-    }
-}
-
-// Subir imagen de servicio
-async function uploadServiceImage(file) {
-    try {
-        if (!authToken) {
-            throw new Error('No autenticado');
-        }
-
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const response = await fetch(`${API_BASE_URL}/api/services/upload`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Error al subir imagen');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error al subir imagen:', error);
-        throw error;
-    }
-}
-
-// Obtener imágenes
-async function getServiceImages() {
-    try {
-        return await apiCall('/api/services/images', 'GET', null, true);
-    } catch (error) {
-        console.error('Error al obtener imágenes:', error);
-        throw error;
-    }
-}
 
 // Eliminar imagen
 async function deleteServiceImage(filename) {
@@ -185,6 +163,35 @@ async function deleteServiceImage(filename) {
         console.error('Error al eliminar imagen:', error);
         throw error;
     }
+}
+
+// Subir video de portafolio
+async function uploadPortfolioVideo(file) {
+    if (!file) throw new Error('No se seleccionó video');
+
+    // Asegurar token actualizado
+    if (!authToken) {
+        authToken = localStorage.getItem('adminToken');
+    }
+    if (!authToken) throw new Error('No autenticado');
+
+    const formData = new FormData();
+    formData.append('video', file);
+
+    const response = await fetch(`${API_BASE_URL}/api/portfolio/upload-video`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${authToken}`
+        },
+        body: formData
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `Error HTTP ${response.status}`);
+    }
+
+    return response.json();
 }
 
 // Obtener datos de página
@@ -219,6 +226,93 @@ async function savePageData(data) {
         console.error('Error al guardar datos:', error);
         throw error;
     }
+}
+
+// Obtener la versión más reciente de los datos, preservando portafolio/testimonios locales si el servidor está vacío
+async function getCurrentPageData() {
+    try {
+        const data = await apiCall('/api/content/page-data', 'GET', null, false);
+        return mergeWithBackups(data);
+    } catch (error) {
+        console.warn('No se pudo obtener datos frescos, usando respaldo local:', error.message);
+        const local = JSON.parse(localStorage.getItem('pageData') || '{}');
+        return mergeWithBackups(local);
+    }
+}
+
+function mergeWithBackups(data = {}) {
+    const local = JSON.parse(localStorage.getItem('pageData') || '{}');
+    const portfolioBackup = JSON.parse(localStorage.getItem('portfolioBackup') || '[]');
+
+    const defaults = {
+        hero: {
+            title: 'Nina Multipotencial',
+            subtitle: 'Creadora de Contenido UGC & Edición de Video Profesional',
+            description: 'Transformo ideas en contenido visual impactante...'
+        },
+        about: { text1: '', text2: '', features: [] },
+        services: [],
+        portfolio: [],
+        testimonials: [],
+        contact: { whatsapp: '', email: '', instagram: '', tiktok: '', linkedin: '' },
+        colors: typeof defaultColors !== 'undefined' ? defaultColors : {
+            primary: '#667eea',
+            primaryDark: '#764ba2',
+            accent: '#25d366',
+            textDark: '#1a1a1a',
+            textLight: '#666',
+            bgLight: '#f5f7fa',
+            bgWhite: '#ffffff',
+            contactBg: '#ffffff',
+            bgCard: '#ffffff',
+            borderColor: '#e0e0e0',
+            inputBg: '#ffffff',
+            inputBorder: '#ddd',
+            navbarBg: 'rgba(255,255,255,0.95)',
+            navbarText: '#1a1a1a'
+        },
+        typography: typeof defaultTypography !== 'undefined' ? defaultTypography : {
+            primaryFont: "'Poppins', sans-serif",
+            h1Size: '48px',
+            h2Size: '32px',
+            bodySize: '16px',
+            fontWeight: '400',
+            lineHeight: '1.6'
+        }
+    };
+
+    const pickObject = (primary, secondary, fallback) => {
+        if (primary && typeof primary === 'object' && !Array.isArray(primary)) return primary;
+        if (secondary && typeof secondary === 'object' && !Array.isArray(secondary)) return secondary;
+        return fallback;
+    };
+
+    const pickArray = (primary, secondary, backup = []) => {
+        if (Array.isArray(primary) && primary.length) return primary;
+        if (Array.isArray(secondary) && secondary.length) return secondary;
+        if (Array.isArray(backup) && backup.length) return backup;
+        return [];
+    };
+
+    const merged = {
+        hero: pickObject(data.hero, local.hero, defaults.hero),
+        about: pickObject(data.about, local.about, defaults.about),
+        services: pickArray(data.services, local.services, defaults.services),
+        portfolio: pickArray(data.portfolio, local.portfolio, portfolioBackup),
+        testimonials: pickArray(data.testimonials, local.testimonials, defaults.testimonials),
+        contact: pickObject(data.contact, local.contact, defaults.contact),
+        colors: pickObject(data.colors, local.colors, defaults.colors),
+        typography: pickObject(data.typography, local.typography, defaults.typography)
+    };
+
+    if (Array.isArray(merged.portfolio)) {
+        merged.portfolio = merged.portfolio.map(item => ({
+            ...item,
+            videoUrl: sanitizeVideoUrl(normalizeMediaUrl(item?.videoUrl))
+        }));
+    }
+
+    return merged;
 }
 
 // Cargar imágenes disponibles del servidor
@@ -595,6 +689,14 @@ async function loadPageData() {
                 console.warn('No se pudo fusionar portafolio local:', e.message);
             }
 
+            // Normalizar URLs de video para asegurar formato embed
+            if (Array.isArray(data.portfolio)) {
+                data.portfolio = data.portfolio.map(item => ({
+                    ...item,
+                    videoUrl: sanitizeVideoUrl(item?.videoUrl)
+                }));
+            }
+
             // Guardar en localStorage como respaldo
             localStorage.setItem('pageData', JSON.stringify(data));
 
@@ -610,6 +712,14 @@ async function loadPageData() {
                 // Intentar una vez más sin token
                 const data = await apiCall('/api/content/page-data', 'GET', null, false);
                 console.log('📥 Datos cargados desde el servidor:', data);
+
+                if (Array.isArray(data.portfolio)) {
+                    data.portfolio = data.portfolio.map(item => ({
+                        ...item,
+                        videoUrl: sanitizeVideoUrl(item?.videoUrl)
+                    }));
+                }
+
                 localStorage.setItem('pageData', JSON.stringify(data));
                 applyPageData(data);
             } else {
@@ -622,6 +732,12 @@ async function loadPageData() {
         const savedData = localStorage.getItem('pageData');
         if (savedData) {
             const data = JSON.parse(savedData);
+            if (Array.isArray(data.portfolio)) {
+                data.portfolio = data.portfolio.map(item => ({
+                    ...item,
+                    videoUrl: sanitizeVideoUrl(item?.videoUrl)
+                }));
+            }
             applyPageData(data);
         }
     }
@@ -811,7 +927,12 @@ function renderPortfolioItems(items = []) {
     if (!grid) return;
 
     grid.innerHTML = '';
-    const activeItems = (items || []).filter(item => item && item.active !== false);
+    const normalizedItems = (items || []).map(item => ({
+        ...item,
+        videoUrl: sanitizeVideoUrl(normalizeMediaUrl(item?.videoUrl))
+    }));
+
+    const activeItems = normalizedItems.filter(item => item && item.active !== false);
 
     if (activeItems.length === 0) {
         grid.innerHTML = '<div class="portfolio-empty">Carga tus videos desde el panel para mostrarlos aqui.</div>';
@@ -843,8 +964,8 @@ function renderPortfolioItems(items = []) {
         const meta = document.createElement('span');
         meta.className = 'portfolio-meta';
         meta.textContent = detectVideoType(item.videoUrl) === 'youtube'
-            ? 'YouTube / Streaming'
-            : 'Archivo o link directo';
+            ? ''
+            : '';
 
         body.appendChild(title);
         body.appendChild(desc);
@@ -879,7 +1000,8 @@ function createPortfolioPlayer(item) {
 
     const source = document.createElement('source');
     source.src = item.videoUrl;
-    source.type = 'video/mp4';
+    const mime = getVideoMime(item.videoUrl);
+    if (mime) source.type = mime;
     video.appendChild(source);
 
     const fallback = document.createElement('p');
@@ -895,20 +1017,56 @@ function detectVideoType(url = '') {
     return 'file';
 }
 
+function getVideoMime(url = '') {
+    const lower = (url || '').toLowerCase();
+    if (lower.endsWith('.mp4')) return 'video/mp4';
+    if (lower.endsWith('.mov')) return 'video/quicktime';
+    if (lower.endsWith('.webm')) return 'video/webm';
+    return '';
+}
+
 function getYoutubeEmbedUrl(url) {
+    const id = extractYoutubeId(url);
+    if (!id) return url;
+    return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+}
+
+function extractYoutubeId(url = '') {
     try {
         const parsed = new URL(url);
+
+        // youtu.be/<id>
         if (parsed.hostname.includes('youtu.be')) {
-            return `https://www.youtube.com/embed/${parsed.pathname.replace('/', '')}`;
+            const cleanPath = parsed.pathname.replace(/^\//, '').split('/')[0];
+            return cleanPath || null;
         }
-        const videoId = parsed.searchParams.get('v');
-        if (videoId) {
-            return `https://www.youtube.com/embed/${videoId}`;
-        }
+
+        // youtube.com/watch?v=ID
+        const vParam = parsed.searchParams.get('v');
+        if (vParam) return vParam;
+
+        // youtube.com/embed/<id>, /shorts/<id>, /live/<id>
+        const pathMatch = parsed.pathname.match(/\/(embed|shorts|live)\/([A-Za-z0-9_-]{6,})/);
+        if (pathMatch && pathMatch[2]) return pathMatch[2];
+
+        // Último recurso: regex amplia
+        const regex = /(?:v=|\/)([A-Za-z0-9_-]{11})(?:[?&]|$)/;
+        const m = url.match(regex);
+        if (m && m[1]) return m[1];
     } catch (error) {
-        console.warn('No se pudo parsear URL de YouTube:', url);
+        console.warn('No se pudo extraer ID de YouTube:', url);
     }
-    return url;
+    return null;
+}
+
+function sanitizeVideoUrl(url = '') {
+    const trimmed = (url || '').trim();
+    if (!trimmed) return '';
+    const id = extractYoutubeId(trimmed);
+    if (id) {
+        return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+    }
+    return trimmed;
 }
 
 
@@ -985,36 +1143,15 @@ window.addEventListener('click', (e) => {
 // Cargar datos del panel admin
 async function loadAdminPanel() {
     try {
-        // Cargar datos desde el servidor
-        const data = await apiCall('/api/content/page-data');
-        console.log('📥 Datos del panel cargados desde el servidor:', data);
-
-        // Si por alguna razón el backend no trae portafolio pero hay datos locales, mezclarlos
-        try {
-            const localData = JSON.parse(localStorage.getItem('pageData') || '{}');
-            if ((!data.portfolio || data.portfolio.length === 0) && Array.isArray(localData.portfolio)) {
-                data.portfolio = localData.portfolio;
-            }
-            // Refuerzo: si tampoco hay en pageData, usar respaldo dedicado
-            if ((!data.portfolio || data.portfolio.length === 0)) {
-                const backup = JSON.parse(localStorage.getItem('portfolioBackup') || '[]');
-                if (Array.isArray(backup) && backup.length > 0) {
-                    data.portfolio = backup;
-                }
-            }
-            // Guardar respaldo actualizado
-            localStorage.setItem('pageData', JSON.stringify(data));
-        } catch (e) {
-            console.warn('No se pudo mezclar datos locales del panel:', e.message);
-        }
-
-        // Aplicar datos al panel
+        const data = await getCurrentPageData();
+        console.log('📥 Datos del panel cargados:', data);
+        localStorage.setItem('pageData', JSON.stringify(data));
+        localStorage.setItem('portfolioBackup', JSON.stringify(data.portfolio || []));
         applyAdminPanelData(data);
     } catch (error) {
-        console.warn('❌ Error cargando datos del panel desde servidor, usando localStorage:', error.message);
-        // Fallback a localStorage
+        console.warn('❌ Error cargando datos del panel, usando localStorage:', error.message);
         const savedData = localStorage.getItem('pageData') || '{}';
-        const data = JSON.parse(savedData);
+        const data = mergeWithBackups(JSON.parse(savedData));
         applyAdminPanelData(data);
     }
 }
@@ -1026,6 +1163,14 @@ function applyAdminPanelData(data) {
         if (Array.isArray(backup) && backup.length > 0) {
             data.portfolio = backup;
         }
+    }
+
+    if (Array.isArray(data.portfolio)) {
+        data.portfolio = data.portfolio.map(item => ({
+            ...item,
+            videoUrl: sanitizeVideoUrl(item?.videoUrl)
+        }));
+        localStorage.setItem('portfolioBackup', JSON.stringify(data.portfolio));
     }
 
     document.getElementById('heroTitle').value = data.hero?.title || 'Nina Multipotencial';
@@ -1187,7 +1332,7 @@ function applyAdminPanelData(data) {
 
 // Guardar Hero
 async function saveHeroContent() {
-    const data = JSON.parse(localStorage.getItem('pageData') || '{}');
+    const data = await getCurrentPageData();
     data.hero = {
         title: document.getElementById('heroTitle').value,
         subtitle: document.getElementById('heroSubtitle').value,
@@ -1211,7 +1356,7 @@ async function saveHeroContent() {
 
 // Guardar About
 async function saveAboutContent() {
-    const data = JSON.parse(localStorage.getItem('pageData') || '{}');
+    const data = await getCurrentPageData();
     const features = [];
     document.querySelectorAll('.feature-edit .feature-input').forEach(input => {
         if (input.value.trim()) features.push(input.value);
@@ -1252,7 +1397,7 @@ function addFeature() {
 
 // Guardar Servicios - Con Loading, Preview y Compresión
 async function saveServices() {
-    const data = JSON.parse(localStorage.getItem('pageData') || '{}');
+    const data = await getCurrentPageData();
     const services = [];
     const serviceElements = document.querySelectorAll('.service-edit');
 
@@ -1473,9 +1618,14 @@ function addPortfolioItem(item = {}) {
             <textarea rows="3" class="portfolio-description" placeholder="Contexto del video">${item.description || ''}</textarea>
         </div>
         <div class="form-group">
-            <label>Link del video (YouTube o archivo MP4/MOV/WEBM)</label>
-            <input type="url" class="portfolio-video" placeholder="https://www.youtube.com/watch?v=..." value="${item.videoUrl || ''}">
-            <small class="input-hint">Si es YouTube usamos embed; si es archivo directo se mostrara con reproductor HTML5.</small>
+            <label>Subir video (MP4/MOV/WEBM) o pegar URL</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <input type="file" class="portfolio-video-file" accept="video/mp4,video/quicktime,video/webm" style="flex: 1 1 220px;">
+                <button type="button" class="upload-portfolio-video-btn" style="flex: 0 0 auto;">Subir y usar</button>
+            </div>
+            <div class="portfolio-video-upload-status" style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.35rem;"></div>
+            <input type="url" class="portfolio-video" placeholder="https://www.youtube.com/watch?v=..." value="${item.videoUrl || ''}" style="margin-top: 0.35rem;">
+            <small class="input-hint">Puedes pegar un enlace (YouTube, CDN) o subir un archivo; si subes, se guarda en el servidor y se autocompleta el campo.</small>
         </div>
         <div class="form-group">
             <label>Miniatura (opcional)</label>
@@ -1490,6 +1640,36 @@ function addPortfolioItem(item = {}) {
     `;
 
     container.appendChild(wrapper);
+
+    // Wire upload button to backend video upload
+    const fileInput = wrapper.querySelector('.portfolio-video-file');
+    const urlInput = wrapper.querySelector('.portfolio-video');
+    const statusEl = wrapper.querySelector('.portfolio-video-upload-status');
+    const uploadBtn = wrapper.querySelector('.upload-portfolio-video-btn');
+
+    if (uploadBtn && fileInput && urlInput) {
+        uploadBtn.addEventListener('click', async () => {
+            try {
+                const file = fileInput.files?.[0];
+                if (!file) {
+                    statusEl.textContent = 'Selecciona un archivo primero.';
+                    statusEl.style.color = 'var(--text-light)';
+                    return;
+                }
+
+                statusEl.textContent = 'Subiendo video...';
+                statusEl.style.color = 'var(--text-light)';
+                const result = await uploadPortfolioVideo(file);
+                urlInput.value = result.url || result.videoUrl || '';
+                statusEl.textContent = '✓ Video subido y asignado.';
+                statusEl.style.color = 'var(--primary)';
+            } catch (error) {
+                console.error('Error al subir video:', error.message);
+                statusEl.textContent = `Error: ${error.message}`;
+                statusEl.style.color = '#d9534f';
+            }
+        });
+    }
 }
 
 // Guardar portafolio
@@ -1507,7 +1687,8 @@ async function savePortfolio() {
     const entries = [];
 
     document.querySelectorAll('.portfolio-edit').forEach(block => {
-        const videoUrl = block.querySelector('.portfolio-video')?.value.trim();
+        const rawUrl = block.querySelector('.portfolio-video')?.value;
+        const videoUrl = sanitizeVideoUrl(rawUrl);
         if (!videoUrl) return; // ignorar entradas vacias
 
         entries.push({
@@ -1566,7 +1747,7 @@ function showImagePreview(fileInput, index) {
 
 // Guardar Testimonios (solo imagen)
 async function saveTestimonials() {
-    const data = JSON.parse(localStorage.getItem('pageData') || '{}');
+    const data = await getCurrentPageData();
     const testimonials = [];
     const testimonialElements = document.querySelectorAll('.testimonial-edit');
 
@@ -1662,7 +1843,7 @@ function addTestimonial() {
 
 // Guardar Contacto
 async function saveContactContent() {
-    const data = JSON.parse(localStorage.getItem('pageData') || '{}');
+    const data = await getCurrentPageData();
 
     data.contact = {
         whatsapp: document.getElementById('whatsappNumber').value,

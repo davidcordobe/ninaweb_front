@@ -1,6 +1,9 @@
 // Página de portafolio: obtiene los datos del backend y renderiza solo las cards de video
 
-const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+(function () {
+
+const isFileProtocol = window.location.protocol === 'file:';
+const isDevelopment = isFileProtocol || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const PROD_API_BASE_URL = 'https://ninamulti-back.onrender.com';
 const API_BASE_URL = isDevelopment ? 'http://localhost:5001' : PROD_API_BASE_URL;
 
@@ -38,6 +41,28 @@ function normalizeImageUrl(url) {
     return url;
 }
 
+function normalizeMediaUrl(url) {
+    if (!url) return url;
+    const localhostBases = [
+        'http://localhost:5001',
+        'http://127.0.0.1:5001',
+        'https://localhost:5001',
+        'https://127.0.0.1:5001'
+    ];
+
+    for (const base of localhostBases) {
+        if (url.startsWith(base)) {
+            return url.replace(base, API_BASE_URL);
+        }
+    }
+
+    if (url.startsWith('/uploads')) {
+        return `${API_BASE_URL}${url}`;
+    }
+
+    return url;
+}
+
 async function apiCall(endpoint) {
     const fullUrl = `${API_BASE_URL}${endpoint}`;
     const response = await fetch(fullUrl);
@@ -54,20 +79,52 @@ function detectVideoType(url = '') {
     return 'file';
 }
 
+function getVideoMime(url = '') {
+    const lower = (url || '').toLowerCase();
+    if (lower.endsWith('.mp4')) return 'video/mp4';
+    if (lower.endsWith('.mov')) return 'video/quicktime';
+    if (lower.endsWith('.webm')) return 'video/webm';
+    return '';
+}
+
 function getYoutubeEmbedUrl(url) {
+    const id = extractYoutubeId(url);
+    if (!id) return url;
+    return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+}
+
+function extractYoutubeId(url = '') {
     try {
         const parsed = new URL(url);
+
         if (parsed.hostname.includes('youtu.be')) {
-            return `https://www.youtube.com/embed/${parsed.pathname.replace('/', '')}`;
+            const cleanPath = parsed.pathname.replace(/^\//, '').split('/')[0];
+            return cleanPath || null;
         }
-        const videoId = parsed.searchParams.get('v');
-        if (videoId) {
-            return `https://www.youtube.com/embed/${videoId}`;
-        }
+
+        const vParam = parsed.searchParams.get('v');
+        if (vParam) return vParam;
+
+        const pathMatch = parsed.pathname.match(/\/(embed|shorts|live)\/([A-Za-z0-9_-]{6,})/);
+        if (pathMatch && pathMatch[2]) return pathMatch[2];
+
+        const regex = /(?:v=|\/)([A-Za-z0-9_-]{11})(?:[?&]|$)/;
+        const m = url.match(regex);
+        if (m && m[1]) return m[1];
     } catch (error) {
-        console.warn('No se pudo parsear URL de YouTube:', url);
+        console.warn('No se pudo extraer ID de YouTube:', url);
     }
-    return url;
+    return null;
+}
+
+function sanitizeVideoUrl(url = '') {
+    const trimmed = (url || '').trim();
+    if (!trimmed) return '';
+    const id = extractYoutubeId(trimmed);
+    if (id) {
+        return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+    }
+    return trimmed;
 }
 
 function createPlayer(item) {
@@ -89,7 +146,8 @@ function createPlayer(item) {
 
     const source = document.createElement('source');
     source.src = item.videoUrl;
-    source.type = 'video/mp4';
+    const mime = getVideoMime(item.videoUrl);
+    if (mime) source.type = mime;
     video.appendChild(source);
 
     const fallback = document.createElement('p');
@@ -102,7 +160,15 @@ function renderPortfolio(items = []) {
     if (!portfolioGrid) return;
     portfolioGrid.innerHTML = '';
 
-    const activeItems = (items || []).filter(item => item && item.active !== false);
+    const normalizedItems = (items || []).map(item => {
+        const normalizedUrl = normalizeMediaUrl(item?.videoUrl);
+        return {
+            ...item,
+            videoUrl: sanitizeVideoUrl(normalizedUrl)
+        };
+    });
+
+    const activeItems = normalizedItems.filter(item => item && item.active !== false);
     if (activeItems.length === 0) {
         portfolioGrid.innerHTML = '<div class="portfolio-empty">Aun no hay videos publicados. Agrégalos desde el panel de administración.</div>';
         return;
@@ -131,8 +197,8 @@ function renderPortfolio(items = []) {
         const meta = document.createElement('span');
         meta.className = 'portfolio-meta';
         meta.textContent = detectVideoType(item.videoUrl) === 'youtube'
-            ? 'YouTube / Streaming'
-            : 'Archivo o link directo';
+            ? ''
+            : '';
 
         body.appendChild(title);
         body.appendChild(desc);
@@ -216,3 +282,5 @@ if (hamburger && navMenu) {
 }
 
 loadPortfolio();
+
+})();
