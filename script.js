@@ -979,6 +979,18 @@ async function loadAdminPanel() {
         const data = await apiCall('/api/content/page-data');
         console.log('📥 Datos del panel cargados desde el servidor:', data);
 
+        // Si por alguna razón el backend no trae portafolio pero hay datos locales, mezclarlos
+        try {
+            const localData = JSON.parse(localStorage.getItem('pageData') || '{}');
+            if ((!data.portfolio || data.portfolio.length === 0) && Array.isArray(localData.portfolio)) {
+                data.portfolio = localData.portfolio;
+            }
+            // Guardar respaldo actualizado
+            localStorage.setItem('pageData', JSON.stringify(data));
+        } catch (e) {
+            console.warn('No se pudo mezclar datos locales del panel:', e.message);
+        }
+
         // Aplicar datos al panel
         applyAdminPanelData(data);
     } catch (error) {
@@ -1457,7 +1469,16 @@ function addPortfolioItem(item = {}) {
 
 // Guardar portafolio
 async function savePortfolio() {
-    const data = JSON.parse(localStorage.getItem('pageData') || '{}');
+    // Tomar la versión más reciente desde el backend para no sobrescribir otras secciones
+    let data = {};
+    try {
+        data = await apiCall('/api/content/page-data');
+        localStorage.setItem('pageData', JSON.stringify(data));
+    } catch (e) {
+        console.warn('No se pudo obtener datos frescos para portafolio, usando localStorage:', e.message);
+        data = JSON.parse(localStorage.getItem('pageData') || '{}');
+    }
+
     const entries = [];
 
     document.querySelectorAll('.portfolio-edit').forEach(block => {
