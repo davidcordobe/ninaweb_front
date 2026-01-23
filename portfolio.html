@@ -15,10 +15,14 @@
             <div class="nav-logo" id="navLogo">Nina</div>
             <ul class="nav-menu">
                 <li><a href="index.html#inicio" class="nav-link">Inicio</a></li>
-                <li><a href="index.html#servicios" class="nav-link">Servicios</a></li>
-                <li><a href="portfolio.html" class="nav-link" aria-current="page">Portafolio</a></li>
-                <li><a href="index.html#contacto" class="nav-link">Contacto</a></li>
             </ul>
+            <button class="admin-btn" title="Panel de administración">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="12" cy="5" r="1"></circle>
+                    <circle cx="12" cy="19" r="1"></circle>
+                </svg>
+            </button>
             <div class="hamburger">
                 <span></span>
                 <span></span>
@@ -60,6 +64,361 @@
         </div>
     </footer>
 
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">Cargando...</div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-container">
+            <h2>Panel de Administración</h2>
+            <form class="login-form" id="loginForm">
+                <input type="text" id="adminUsername" placeholder="Usuario" autocomplete="username" required>
+                <input type="password" id="adminPassword" placeholder="Ingresa tu contraseña" required>
+                <button type="submit" class="login-btn">Acceder</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2>Panel de Administración</h2>
+            <button class="close-admin" id="closeAdmin">✕</button>
+        </div>
+        
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" data-tab="hero">Hero</button>
+            <button class="admin-tab-btn" data-tab="about">Acerca de</button>
+            <button class="admin-tab-btn" data-tab="services">Servicios</button>
+            <button class="admin-tab-btn" data-tab="portfolio">Portafolio</button>
+            <button class="admin-tab-btn" data-tab="testimonials">Testimonios</button>
+            <button class="admin-tab-btn" data-tab="contact">Contacto</button>
+            <button class="admin-tab-btn" data-tab="colors">Colores</button>
+            <button class="admin-tab-btn" data-tab="typography">Tipografía</button>
+            <button class="admin-tab-btn" data-tab="logo">Logo</button>
+        </div>
+
+        <div class="admin-content">
+            <!-- Hero Tab -->
+            <div class="admin-tab-content active" id="hero-tab">
+                <h3>Editar Sección Hero</h3>
+                <div class="form-group">
+                    <label>Título Principal</label>
+                    <input type="text" id="heroTitle" placeholder="Título">
+                </div>
+                <div class="form-group">
+                    <label>Subtítulo</label>
+                    <input type="text" id="heroSubtitle" placeholder="Subtítulo">
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="heroDescription" placeholder="Descripción" rows="4"></textarea>
+                </div>
+                <button class="save-btn" onclick="saveHeroContent()">Guardar Cambios</button>
+            </div>
+
+            <!-- About Tab -->
+            <div class="admin-tab-content" id="about-tab">
+                <h3>Editar Sección Acerca de Mí</h3>
+                <div class="form-group">
+                    <label>Párrafo 1</label>
+                    <textarea id="aboutText1" placeholder="Primer párrafo" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Párrafo 2</label>
+                    <textarea id="aboutText2" placeholder="Segundo párrafo" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Características</label>
+                    <div id="featuresContainer"></div>
+                    <button class="add-btn" onclick="addFeature()">+ Agregar Característica</button>
+                </div>
+                <button class="save-btn" onclick="saveAboutContent()">Guardar Cambios</button>
+            </div>
+
+            <!-- Services Tab -->
+            <div class="admin-tab-content" id="services-tab">
+                <h3>Gestionar Servicios</h3>
+                <div id="servicesContainer"></div>
+                <button class="add-btn" onclick="addNewService()">+ Agregar Nuevo Servicio</button>
+                <button class="save-btn" onclick="saveServices()">Guardar Cambios</button>
+            </div>
+
+            <!-- Portfolio Tab -->
+            <div class="admin-tab-content" id="portfolio-tab">
+                <h3>Gestionar Portafolio en Video</h3>
+                <p class="input-hint">Pega links de YouTube o archivos MP4/MOV/WEBM hosteados. Cada tarjeta se crea con su reproductor.</p>
+                <div id="portfolioContainer"></div>
+                <button class="add-btn" onclick="addPortfolioItem()">+ Agregar Video</button>
+                <button class="save-btn" onclick="savePortfolio()">Guardar Portafolio</button>
+            </div>
+
+            <!-- Testimonials Tab -->
+            <div class="admin-tab-content" id="testimonials-tab">
+                <h3>Gestionar Testimonios</h3>
+                <div id="testimonialsContainer"></div>
+                <button class="add-btn" onclick="addTestimonial()">+ Agregar Testimonio</button>
+                <button class="save-btn" onclick="saveTestimonials()">Guardar Cambios</button>
+            </div>
+
+            <!-- Contact Tab -->
+            <div class="admin-tab-content" id="contact-tab">
+                <h3>Editar Información de Contacto</h3>
+                <div class="form-group">
+                    <label>Número WhatsApp</label>
+                    <input type="text" id="whatsappNumber" placeholder="3512715524">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="contactEmail" placeholder="nina@multipotencial.com">
+                </div>
+                <div class="form-group">
+                    <label>Link Instagram</label>
+                    <input type="url" id="instagramLink" placeholder="https://instagram.com/tu_usuario">
+                </div>
+                <div class="form-group">
+                    <label>Link TikTok</label>
+                    <input type="url" id="tiktokLink" placeholder="https://tiktok.com/@tu_usuario">
+                </div>
+                <div class="form-group">
+                    <label>Link LinkedIn</label>
+                    <input type="url" id="linkedinLink" placeholder="https://linkedin.com/in/tu_usuario">
+                </div>
+                <button class="save-btn" onclick="saveContactContent()">Guardar Cambios</button>
+            </div>
+
+            <!-- Colors Tab -->
+            <div class="admin-tab-content" id="colors-tab">
+                <h3>Personalizar Paleta de Colores</h3>
+                <p class="color-help">Ajusta cada color y mira en la vista previa dónde se usa (botones, texto, fondos y acentos).</p>
+                <div class="colors-grid">
+                    <div class="color-picker-group">
+                        <label>Color Primario</label>
+                        <p class="color-usage">Botones, links, gradientes, acentos principales.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="primaryColor" class="color-picker">
+                            <input type="text" id="primaryColorHex" class="color-hex" placeholder="#667eea">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Color Primario Oscuro</label>
+                        <p class="color-usage">Borde/hover de botones y gradientes.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="primaryDarkColor" class="color-picker">
+                            <input type="text" id="primaryDarkColorHex" class="color-hex" placeholder="#764ba2">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Color Acento</label>
+                        <p class="color-usage">Estados positivos, etiquetas y realces secundarios.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="accentColor" class="color-picker">
+                            <input type="text" id="accentColorHex" class="color-hex" placeholder="#25d366">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Texto Principal</label>
+                        <p class="color-usage">Títulos, párrafos y menús.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="textDarkColor" class="color-picker">
+                            <input type="text" id="textDarkColorHex" class="color-hex" placeholder="#1a1a1a">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Texto Secundario</label>
+                        <p class="color-usage">Texto de apoyo, descripciones y placeholders.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="textLightColor" class="color-picker">
+                            <input type="text" id="textLightColorHex" class="color-hex" placeholder="#666">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Fondo Claro</label>
+                        <p class="color-usage">Fondos de secciones claras y tarjetas.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="bgLightColor" class="color-picker">
+                            <input type="text" id="bgLightColorHex" class="color-hex" placeholder="#f8f9fa">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Fondo General</label>
+                        <p class="color-usage">Fondo base de la página (body).</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="bgWhiteColor" class="color-picker">
+                            <input type="text" id="bgWhiteColorHex" class="color-hex" placeholder="#ffffff">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Fondo Contacto</label>
+                        <p class="color-usage">Fondo de la sección de contacto.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="contactBgColor" class="color-picker">
+                            <input type="text" id="contactBgColorHex" class="color-hex" placeholder="#ffffff">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Fondo Tarjetas</label>
+                        <p class="color-usage">Cards de servicios, testimonios y panel.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="bgCardColor" class="color-picker">
+                            <input type="text" id="bgCardColorHex" class="color-hex" placeholder="#ffffff">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Bordes</label>
+                        <p class="color-usage">Líneas divisorias, bordes de inputs y cards.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="borderColor" class="color-picker">
+                            <input type="text" id="borderColorHex" class="color-hex" placeholder="#e0e0e0">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Navbar (Fondo)</label>
+                        <p class="color-usage">Fondo de la barra superior fija.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="navbarBgColor" class="color-picker">
+                            <input type="text" id="navbarBgColorHex" class="color-hex" placeholder="rgba(255,255,255,0.95)">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Navbar (Texto)</label>
+                        <p class="color-usage">Links y acciones en la barra superior.</p>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="navbarTextColor" class="color-picker">
+                            <input type="text" id="navbarTextColorHex" class="color-hex" placeholder="#1a1a1a">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color-preview">
+                    <div class="preview-card">
+                        <div class="preview-header">Encabezado / Título</div>
+                        <div class="preview-body">
+                            <p class="preview-text-strong">Texto principal de ejemplo</p>
+                            <p class="preview-text-muted">Texto secundario para descripciones y detalles.</p>
+                            <button class="preview-btn">Botón primario</button>
+                            <span class="preview-tag">Acento</span>
+                        </div>
+                    </div>
+                    <div class="preview-bg">
+                        <div class="preview-bg-sample">Fondo claro / secciones</div>
+                        <div class="preview-bg-card">Tarjeta sobre fondo</div>
+                    </div>
+                </div>
+                <button class="save-btn" onclick="saveColors()">Guardar Colores</button>
+                <button class="reset-btn" onclick="resetColors()">Restaurar Colores por Defecto</button>
+            </div>
+
+            <!-- Typography Tab -->
+            <div class="admin-tab-content" id="typography-tab">
+                <h3>Personalizar Estilos de Letra</h3>
+                <div class="typography-grid">
+                    <div class="form-group">
+                        <label>Fuente Principal</label>
+                        <select id="primaryFont" class="font-select">
+                            <option value="'Poppins', sans-serif">Poppins (Predeterminado)</option>
+                            <option value="'Roboto', sans-serif">Roboto</option>
+                            <option value="'Open Sans', sans-serif">Open Sans</option>
+                            <option value="'Lato', sans-serif">Lato</option>
+                            <option value="'Montserrat', sans-serif">Montserrat</option>
+                            <option value="'Nunito', sans-serif">Nunito</option>
+                            <option value="'Inter', sans-serif">Inter</option>
+                            <option value="'Work Sans', sans-serif">Work Sans</option>
+                            <option value="'Playfair Display', serif">Playfair Display</option>
+                            <option value="'Merriweather', serif">Merriweather</option>
+                            <option value="'Crimson Text', serif">Crimson Text</option>
+                            <option value="'Libre Baskerville', serif">Libre Baskerville</option>
+                            <option value="'Source Serif Pro', serif">Source Serif Pro</option>
+                            <option value="'PT Serif', serif">PT Serif</option>
+                            <option value="'Ubuntu', sans-serif">Ubuntu</option>
+                            <option value="'Fira Sans', sans-serif">Fira Sans</option>
+                            <option value="'Noto Sans', sans-serif">Noto Sans</option>
+                            <option value="'Oxygen', sans-serif">Oxygen</option>
+                            <option value="'Karla', sans-serif">Karla</option>
+                            <option value="'Rubik', sans-serif">Rubik</option>
+                            <option value="'DM Sans', sans-serif">DM Sans</option>
+                            <option value="'IBM Plex Sans', sans-serif">IBM Plex Sans</option>
+                            <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+                            <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                            <option value="'Fira Code', monospace">Fira Code</option>
+                            <option value="custom">Google Font Personalizada</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customFontGroup" style="display: none;">
+                        <label>Nombre de la Fuente (Google Fonts)</label>
+                            <div style="display: flex; gap: 0.5rem; align-items: flex-start; flex-wrap: wrap;">
+                                <input type="text" id="customFontName" class="font-input" placeholder="Ej: Dancing Script" style="flex: 1; min-width: 220px;" list="googleFontsList">
+                                <button type="button" id="loadGoogleFontsBtn" class="save-btn" style="padding: 0.75rem 1rem; font-size: 0.9rem; white-space: nowrap;">Cargar lista</button>
+                                <button type="button" id="generateUrlBtn" class="save-btn" style="padding: 0.75rem 1rem; font-size: 0.9rem; white-space: nowrap;">Generar URL</button>
+                            </div>
+                            <datalist id="googleFontsList"></datalist>
+                            <div id="googleFontsListContainer" style="max-height: 220px; overflow-y: auto; margin-top: 0.5rem; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.25rem 0.5rem; display: none; background: var(--bg-white);"></div>
+                            <small id="googleFontsStatus" style="color: var(--text-light); font-size: 0.8rem; display: block; margin-top: 0.35rem;">
+                                Pulsa "Cargar lista" para ver todas las fuentes de Google Fonts (requiere API key).
+                            </small>
+                    </div>
+                    <div class="form-group" id="googleFontsUrlGroup" style="display: none;">
+                        <label>URL de Google Fonts</label>
+                        <input type="text" id="googleFontsUrl" class="font-input" placeholder="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap">
+                        <small style="color: var(--text-light); font-size: 0.8rem;">
+                            Pega aquí la URL completa de Google Fonts (o déjala en blanco para generar automáticamente)
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label>Tamaño de Títulos (H1)</label>
+                        <input type="range" id="h1Size" min="24" max="72" value="48" class="size-slider">
+                        <span id="h1SizeValue" class="size-value">48px</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Tamaño de Subtítulos (H2)</label>
+                        <input type="range" id="h2Size" min="18" max="48" value="32" class="size-slider">
+                        <span id="h2SizeValue" class="size-value">32px</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Tamaño de Texto Normal</label>
+                        <input type="range" id="bodySize" min="14" max="24" value="16" class="size-slider">
+                        <span id="bodySizeValue" class="size-value">16px</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Peso de las Fuentes</label>
+                        <select id="fontWeight" class="weight-select">
+                            <option value="300">Light (300)</option>
+                            <option value="400" selected>Regular (400)</option>
+                            <option value="500">Medium (500)</option>
+                            <option value="600">Semi-Bold (600)</option>
+                            <option value="700">Bold (700)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Altura de Línea</label>
+                        <input type="range" id="lineHeight" min="1.2" max="2.0" step="0.1" value="1.6" class="line-height-slider">
+                        <span id="lineHeightValue" class="size-value">1.6</span>
+                    </div>
+                </div>
+                <button class="save-btn" onclick="saveTypography()">Guardar Estilos de Letra</button>
+                <button class="reset-btn" onclick="resetTypography()">Restaurar Estilos por Defecto</button>
+            </div>
+
+            <!-- Logo Tab -->
+            <div class="admin-tab-content" id="logo-tab">
+                <h3>Cambiar Logo</h3>
+                <div class="form-group">
+                    <label>Logo de la Página</label>
+                    <input type="file" id="logoInput" accept="image/*" placeholder="Selecciona el logo">
+                </div>
+                <div id="logoPreview" class="logo-preview"></div>
+                <button class="save-btn" onclick="saveLogo()">Guardar Logo</button>
+                <button class="reset-btn" onclick="resetLogo()">Restaurar Logo Predeterminado</button>
+            </div>
+        </div>
+
+        <button class="logout-btn" id="logoutBtn">Cerrar Sesión</button>
+    </div>
+
+    <script src="script.js"></script>
     <script src="portfolio.js"></script>
 </body>
 </html>

@@ -615,9 +615,12 @@ async function loadPageData() {
 function applyPageData(data) {
     // Cargar Hero
     if (data.hero) {
-        document.querySelector('.hero-title').textContent = data.hero.title || 'Nina Multipotencial';
-        document.querySelector('.hero-subtitle').textContent = data.hero.subtitle || 'Creadora de Contenido UGC & Edición de Video Profesional';
-        document.querySelector('.hero-description').textContent = data.hero.description || 'Transformo ideas en contenido visual impactante...';
+        const heroTitle = document.querySelector('.hero-title');
+        const heroSubtitle = document.querySelector('.hero-subtitle');
+        const heroDescription = document.querySelector('.hero-description');
+        if (heroTitle) heroTitle.textContent = data.hero.title || 'Nina Multipotencial';
+        if (heroSubtitle) heroSubtitle.textContent = data.hero.subtitle || 'Creadora de Contenido UGC & Edición de Video Profesional';
+        if (heroDescription) heroDescription.textContent = data.hero.description || 'Transformo ideas en contenido visual impactante...';
     }
 
     // Cargar Acerca de
@@ -645,7 +648,9 @@ function applyPageData(data) {
     if (data.services) {
         console.log('🔄 Cargando servicios:', data.services);
         const servicesGrid = document.querySelector('.services-grid');
-        servicesGrid.innerHTML = '';
+        if (servicesGrid) {
+            servicesGrid.innerHTML = '';
+        }
         data.services.forEach((service, index) => {
             console.log(`Servicio ${index}:`, service);
             console.log(`Tamaño de imagen: ${service.imageSize}`);
@@ -709,7 +714,9 @@ function applyPageData(data) {
                         </a>` : ''}
                     </div>
                 `;
-                servicesGrid.appendChild(serviceDiv);
+                if (servicesGrid) {
+                    servicesGrid.appendChild(serviceDiv);
+                }
             }
         });
     }
