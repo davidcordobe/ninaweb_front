@@ -582,8 +582,18 @@ async function loadPageData() {
     try {
         // Intentar cargar desde el servidor sin autenticación
         try {
-            const data = await apiCall('/api/content/page-data', 'GET', null, false);
+            let data = await apiCall('/api/content/page-data', 'GET', null, false);
             console.log('📥 Datos cargados desde el servidor:', data);
+
+            // Si el servidor no trae portafolio pero hay en local, conservarlo para no perderlo tras recargar
+            try {
+                const localBackup = JSON.parse(localStorage.getItem('pageData') || '{}');
+                if ((!data.portfolio || data.portfolio.length === 0) && Array.isArray(localBackup.portfolio) && localBackup.portfolio.length > 0) {
+                    data.portfolio = localBackup.portfolio;
+                }
+            } catch (e) {
+                console.warn('No se pudo fusionar portafolio local:', e.message);
+            }
 
             // Guardar en localStorage como respaldo
             localStorage.setItem('pageData', JSON.stringify(data));
