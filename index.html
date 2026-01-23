@@ -24,9 +24,9 @@
                 <li><a href="#inicio" class="nav-link">Inicio</a></li>
                 <li><a href="#acerca" class="nav-link">Acerca de</a></li>
                 <li><a href="#servicios" class="nav-link">Servicios</a></li>
+                <li><a href="#portfolio" class="nav-link">Portafolio</a></li>
                 <li><a href="#testimonios" class="nav-link">Testimonios</a></li>
                 <li><a href="#contacto" class="nav-link">Contacto</a></li>
-                <li><a href="https://tu-portafolio.com" class="nav-link" target="_blank" rel="noopener noreferrer">Portafolio</a></li>
             </ul>
             <button class="admin-btn" title="Panel de administración">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -117,6 +117,25 @@
                     <h3>Edición de Video Profesional</h3>
                     <p>Transformo tus grabaciones en videos impactantes. Edición creativa, efectos visuales y narrativa que cautiva a tu audiencia.</p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section class="portfolio" id="portfolio">
+        <div class="container">
+            <div class="portfolio-header">
+                <div>
+                    <h2 class="section-title">Portafolio en Video</h2>
+                    <p class="portfolio-subtitle">Galeria editable desde el panel: agrega links de YouTube o videos directos y cada tarjeta tendra su propio reproductor.</p>
+                </div>
+                <div class="portfolio-legend">
+                    <span class="legend-dot legend-live"></span><span>Video en streaming</span>
+                    <span class="legend-dot legend-file"></span><span>Archivo subido/hosteado</span>
+                </div>
+            </div>
+            <div class="portfolio-grid" id="portfolioGrid">
+                    <!-- Se completa dinámicamente con script.js -->
             </div>
         </div>
     </section>
@@ -228,6 +247,7 @@
             <button class="admin-tab-btn active" data-tab="hero">Hero</button>
             <button class="admin-tab-btn" data-tab="about">Acerca de</button>
             <button class="admin-tab-btn" data-tab="services">Servicios</button>
+            <button class="admin-tab-btn" data-tab="portfolio">Portafolio</button>
             <button class="admin-tab-btn" data-tab="testimonials">Testimonios</button>
             <button class="admin-tab-btn" data-tab="contact">Contacto</button>
             <button class="admin-tab-btn" data-tab="colors">Colores</button>
@@ -279,6 +299,15 @@
                 <div id="servicesContainer"></div>
                 <button class="add-btn" onclick="addNewService()">+ Agregar Nuevo Servicio</button>
                 <button class="save-btn" onclick="saveServices()">Guardar Cambios</button>
+            </div>
+
+            <!-- Portfolio Tab -->
+            <div class="admin-tab-content" id="portfolio-tab">
+                <h3>Gestionar Portafolio en Video</h3>
+                <p class="input-hint">Pega links de YouTube o archivos MP4/MOV/WEBM hosteados. Cada tarjeta se crea con su reproductor.</p>
+                <div id="portfolioContainer"></div>
+                <button class="add-btn" onclick="addPortfolioItem()">+ Agregar Video</button>
+                <button class="save-btn" onclick="savePortfolio()">Guardar Portafolio</button>
             </div>
 
             <!-- Testimonials Tab -->

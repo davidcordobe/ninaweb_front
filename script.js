@@ -714,6 +714,9 @@ function applyPageData(data) {
         });
     }
 
+    // Cargar Portafolio
+    renderPortfolioItems(data.portfolio || []);
+
     // Cargar Testimonios con carrusel
     renderTestimonialsSlider(data.testimonials || []);
 
@@ -778,6 +781,112 @@ function applyPageData(data) {
     if (data.typography) {
         applyTypography(data.typography);
     }
+}
+
+// Renderizar portafolio en la landing
+function renderPortfolioItems(items = []) {
+    const grid = document.getElementById('portfolioGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    const activeItems = (items || []).filter(item => item && item.active !== false);
+
+    if (activeItems.length === 0) {
+        grid.innerHTML = '<div class="portfolio-empty">Carga tus videos desde el panel para mostrarlos aqui.</div>';
+        return;
+    }
+
+    activeItems.forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'portfolio-card';
+
+        const media = document.createElement('div');
+        media.className = 'portfolio-media';
+        const player = createPortfolioPlayer(item);
+        if (player) {
+            media.appendChild(player);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'portfolio-body';
+
+        const title = document.createElement('h3');
+        title.className = 'portfolio-title';
+        title.textContent = item.title || 'Video sin titulo';
+
+        const desc = document.createElement('p');
+        desc.className = 'portfolio-text';
+        desc.textContent = item.description || 'Video agregado desde el panel de administracion.';
+
+        const meta = document.createElement('span');
+        meta.className = 'portfolio-meta';
+        meta.textContent = detectVideoType(item.videoUrl) === 'youtube'
+            ? 'YouTube / Streaming'
+            : 'Archivo o link directo';
+
+        body.appendChild(title);
+        body.appendChild(desc);
+        body.appendChild(meta);
+
+        card.appendChild(media);
+        card.appendChild(body);
+        grid.appendChild(card);
+    });
+}
+
+function createPortfolioPlayer(item) {
+    if (!item || !item.videoUrl) return null;
+    const sourceType = detectVideoType(item.videoUrl);
+
+    if (sourceType === 'youtube') {
+        const iframe = document.createElement('iframe');
+        iframe.src = getYoutubeEmbedUrl(item.videoUrl);
+        iframe.title = item.title || 'Reproductor de video';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.allowFullscreen = true;
+        iframe.loading = 'lazy';
+        return iframe;
+    }
+
+    const video = document.createElement('video');
+    video.controls = true;
+    video.preload = 'metadata';
+    if (item.poster) {
+        video.poster = normalizeImageUrl(item.poster);
+    }
+
+    const source = document.createElement('source');
+    source.src = item.videoUrl;
+    source.type = 'video/mp4';
+    video.appendChild(source);
+
+    const fallback = document.createElement('p');
+    fallback.textContent = 'Tu navegador no soporta video HTML5.';
+    video.appendChild(fallback);
+
+    return video;
+}
+
+function detectVideoType(url = '') {
+    const lowerUrl = (url || '').toLowerCase();
+    if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) return 'youtube';
+    return 'file';
+}
+
+function getYoutubeEmbedUrl(url) {
+    try {
+        const parsed = new URL(url);
+        if (parsed.hostname.includes('youtu.be')) {
+            return `https://www.youtube.com/embed/${parsed.pathname.replace('/', '')}`;
+        }
+        const videoId = parsed.searchParams.get('v');
+        if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+    } catch (error) {
+        console.warn('No se pudo parsear URL de YouTube:', url);
+    }
+    return url;
 }
 
 
@@ -947,6 +1056,9 @@ function applyAdminPanelData(data) {
         servicesContainer.appendChild(serviceDiv);
 
         // Agregar evento al details para cargar imágenes
+    // Portfolio
+    renderPortfolioAdmin(data.portfolio || []);
+
         const detailsElement = serviceDiv.querySelector('details');
         if (detailsElement) {
             detailsElement.addEventListener('toggle', function () {
@@ -1273,6 +1385,89 @@ function addNewService() {
     fileInput.addEventListener('change', () => showImagePreview(fileInput, newIndex));
 }
 
+// Renderizar portafolio en el panel
+function renderPortfolioAdmin(items = []) {
+    const container = document.getElementById('portfolioContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!items.length) {
+        addPortfolioItem();
+        return;
+    }
+
+    items.forEach(item => addPortfolioItem(item));
+}
+
+function addPortfolioItem(item = {}) {
+    const container = document.getElementById('portfolioContainer');
+    if (!container) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'portfolio-edit';
+    wrapper.innerHTML = `
+        <div class="form-group">
+            <label>Titulo</label>
+            <input type="text" class="portfolio-title" placeholder="Nombre del video" value="${item.title || ''}">
+        </div>
+        <div class="form-group">
+            <label>Descripcion</label>
+            <textarea rows="3" class="portfolio-description" placeholder="Contexto del video">${item.description || ''}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Link del video (YouTube o archivo MP4/MOV/WEBM)</label>
+            <input type="url" class="portfolio-video" placeholder="https://www.youtube.com/watch?v=..." value="${item.videoUrl || ''}">
+            <small class="input-hint">Si es YouTube usamos embed; si es archivo directo se mostrara con reproductor HTML5.</small>
+        </div>
+        <div class="form-group">
+            <label>Miniatura (opcional)</label>
+            <input type="url" class="portfolio-poster" placeholder="https://tu-sitio.com/preview.jpg" value="${item.poster || ''}">
+            <small class="input-hint">Si no la defines y el video es YouTube se usara la miniatura automatica.</small>
+        </div>
+        <label>
+            <input type="checkbox" class="portfolio-active" ${item.active === false ? '' : 'checked'}> Mostrar en la pagina
+        </label>
+        <button type="button" onclick="this.parentElement.remove()" class="delete-btn">Eliminar Video</button>
+        <hr>
+    `;
+
+    container.appendChild(wrapper);
+}
+
+// Guardar portafolio
+async function savePortfolio() {
+    const data = JSON.parse(localStorage.getItem('pageData') || '{}');
+    const entries = [];
+
+    document.querySelectorAll('.portfolio-edit').forEach(block => {
+        const videoUrl = block.querySelector('.portfolio-video')?.value.trim();
+        if (!videoUrl) return; // ignorar entradas vacias
+
+        entries.push({
+            title: block.querySelector('.portfolio-title')?.value.trim() || 'Video',
+            description: block.querySelector('.portfolio-description')?.value.trim() || '',
+            videoUrl,
+            poster: block.querySelector('.portfolio-poster')?.value.trim() || '',
+            active: block.querySelector('.portfolio-active')?.checked !== false
+        });
+    });
+
+    data.portfolio = entries;
+    localStorage.setItem('pageData', JSON.stringify(data));
+
+    showLoading('Guardando portafolio...');
+    try {
+        await savePageData(data);
+        loadPageData();
+        alert('Portafolio guardado');
+    } catch (error) {
+        console.error('Error al guardar portafolio:', error);
+        alert(`No se pudo guardar en el servidor: ${error.message}`);
+    } finally {
+        hideLoading();
+    }
+}
+
 // Mostrar preview de imagen
 function showImagePreview(fileInput, index) {
     const file = fileInput.files[0];
@@ -1508,7 +1703,7 @@ const observer = new IntersectionObserver((entries) => {
 }, observerOptions);
 
 // Observar elementos de tarjetas
-document.querySelectorAll('.service-card, .portfolio-item, .testimonial-card').forEach(el => {
+document.querySelectorAll('.service-card, .portfolio-card, .testimonial-card').forEach(el => {
     observer.observe(el);
 });
 

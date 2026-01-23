@@ -345,6 +345,125 @@ body {
     background: var(--bg-white);
 }
 
+/* ===== Portfolio Section ===== */
+.portfolio {
+    padding: 100px 0;
+    background: var(--bg-light);
+}
+
+.portfolio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.portfolio-subtitle {
+    color: var(--text-light);
+    max-width: 640px;
+    line-height: 1.6;
+    margin-top: 0.75rem;
+}
+
+.portfolio-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    flex-wrap: wrap;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 0.2rem;
+}
+
+.legend-live { background: var(--primary); }
+.legend-file { background: var(--accent); }
+
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.portfolio-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portfolio-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.portfolio-media {
+    position: relative;
+    background: #000;
+    aspect-ratio: 16 / 9;
+}
+
+.portfolio-media iframe,
+.portfolio-media video {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    object-fit: cover;
+}
+
+.portfolio-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.portfolio-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.portfolio-text {
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.portfolio-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--primary);
+    background: rgba(102, 126, 234, 0.08);
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    width: fit-content;
+}
+
+.portfolio-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--text-light);
+    padding: 1.5rem;
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.02);
+}
+
 /* ===== Sections Common ===== */
 .section-title {
     font-size: 2.5rem;
@@ -1190,7 +1309,8 @@ body {
 
 .feature-edit,
 .service-edit,
-.testimonial-edit {
+.testimonial-edit,
+.portfolio-edit {
     background: var(--bg-light);
     padding: 1rem;
     border-radius: 8px;
