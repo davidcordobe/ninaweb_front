@@ -391,9 +391,15 @@ body {
 
 .portfolio-subtitle {
     color: var(--text-light);
-    max-width: 640px;
-    line-height: 1.6;
-    margin-top: 0.75rem;
+    max-width: 100%;
+    line-height: 1.7;
+    margin-top: 1rem;
+    font-size: 1.05rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
 }
 
 .portfolio-legend {
