@@ -34,8 +34,8 @@
     <header class="portfolio-hero">
         <div class="container">
             <div class="portfolio-hero-content">
-                <p class="eyebrow">Seleccion de trabajos</p>
-                <h1>Portafolio en video</h1>
+                <p class="eyebrow" id="portfolioEyebrow">Seleccion de trabajos</p>
+                <h1 id="portfolioHeroTitle">Portafolio en video</h1>
 
             </div>
         </div>
@@ -45,7 +45,8 @@
         <div class="container">
             <div class="portfolio-header">
                 <div>
-                    <h2 class="section-title">Reel de proyectos</h2>
+                    <h2 class="section-title" id="portfolioSectionTitle">Reel de proyectos</h2>
+                    <p class="portfolio-subtitle" id="portfolioIntro"></p>
                 </div>
             </div>
             <div id="portfolioStatus" class="portfolio-subtitle" style="margin-bottom:1rem; display:none;"></div>
@@ -146,6 +147,18 @@
             <!-- Portfolio Tab -->
             <div class="admin-tab-content" id="portfolio-tab">
                 <h3>Gestionar Portafolio en Video</h3>
+                <div class="form-group">
+                    <label>Texto superior (eyebrow)</label>
+                    <input type="text" id="portfolioEyebrowInput" placeholder="Seleccion de trabajos">
+                </div>
+                <div class="form-group">
+                    <label>Título principal de la página</label>
+                    <input type="text" id="portfolioHeroTitleInput" placeholder="Portafolio en video">
+                </div>
+                    <div class="form-group">
+                        <label>Título de la sección</label>
+                        <input type="text" id="portfolioSectionTitleInput" placeholder="Reel de proyectos">
+                    </div>
                 <p class="input-hint">Pega links de YouTube o archivos MP4/MOV/WEBM hosteados. Cada tarjeta se crea con su reproductor.</p>
                 <div id="portfolioContainer"></div>
                 <button class="add-btn" onclick="addPortfolioItem()">+ Agregar Video</button>

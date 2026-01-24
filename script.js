@@ -223,6 +223,11 @@ function mergeWithBackups(data = {}) {
             description: 'Transformo ideas en contenido visual impactante...'
         },
         about: { text1: '', text2: '', features: [] },
+        portfolioPage: {
+            eyebrow: 'Seleccion de trabajos',
+            heroTitle: 'Portafolio en video',
+            sectionTitle: 'Reel de proyectos'
+        },
         portfolioIntro: '',
         services: [],
         portfolio: [],
@@ -271,6 +276,7 @@ function mergeWithBackups(data = {}) {
         hero: pickObject(data.hero, local.hero, defaults.hero),
         about: pickObject(data.about, local.about, defaults.about),
         services: pickArray(data.services, local.services, defaults.services),
+        portfolioPage: pickObject(data.portfolioPage, local.portfolioPage, defaults.portfolioPage),
         portfolioIntro: typeof data.portfolioIntro === 'string' ? data.portfolioIntro : (typeof local.portfolioIntro === 'string' ? local.portfolioIntro : defaults.portfolioIntro),
         portfolio: pickArray(data.portfolio, local.portfolio, portfolioBackup),
         testimonials: pickArray(data.testimonials, local.testimonials, defaults.testimonials),
@@ -718,6 +724,23 @@ async function loadPageData() {
 }
 
 function applyPageData(data) {
+    const portfolioPage = data.portfolioPage || {};
+
+    const eyebrowEl = document.getElementById('portfolioEyebrow');
+    if (eyebrowEl) {
+        eyebrowEl.textContent = portfolioPage.eyebrow || 'Seleccion de trabajos';
+    }
+
+    const portfolioHeroTitleEl = document.getElementById('portfolioHeroTitle');
+    if (portfolioHeroTitleEl) {
+        portfolioHeroTitleEl.textContent = portfolioPage.heroTitle || 'Portafolio en video';
+    }
+
+    const portfolioSectionTitleEl = document.getElementById('portfolioSectionTitle');
+    if (portfolioSectionTitleEl) {
+        portfolioSectionTitleEl.textContent = portfolioPage.sectionTitle || 'Reel de proyectos';
+    }
+
     // Intro portafolio
     const portfolioIntroEl = document.getElementById('portfolioIntro');
     if (portfolioIntroEl && typeof data.portfolioIntro === 'string') {
@@ -1157,6 +1180,20 @@ function applyAdminPanelData(data) {
     document.getElementById('heroSubtitle').value = data.hero?.subtitle || 'Creadora de Contenido UGC & Edición de Video Profesional';
     document.getElementById('heroDescription').value = data.hero?.description || 'Transformo ideas en contenido visual impactante...';
 
+    // Portfolio page texts
+    const eyebrowInput = document.getElementById('portfolioEyebrowInput');
+    if (eyebrowInput) {
+        eyebrowInput.value = data.portfolioPage?.eyebrow || 'Seleccion de trabajos';
+    }
+    const heroTitleInput = document.getElementById('portfolioHeroTitleInput');
+    if (heroTitleInput) {
+        heroTitleInput.value = data.portfolioPage?.heroTitle || 'Portafolio en video';
+    }
+    const sectionTitleInput = document.getElementById('portfolioSectionTitleInput');
+    if (sectionTitleInput) {
+        sectionTitleInput.value = data.portfolioPage?.sectionTitle || 'Reel de proyectos';
+    }
+
     // About
     document.getElementById('aboutText1').value = data.about?.text1 || '';
     document.getElementById('aboutText2').value = data.about?.text2 || '';
@@ -1521,6 +1558,16 @@ async function savePortfolio() {
     const entries = [];
     const introInput = document.getElementById('portfolioIntroInput');
     const introText = introInput ? introInput.value : data.portfolioIntro || '';
+
+    const eyebrowInput = document.getElementById('portfolioEyebrowInput');
+    const heroTitleInput = document.getElementById('portfolioHeroTitleInput');
+    const sectionTitleInput = document.getElementById('portfolioSectionTitleInput');
+
+    data.portfolioPage = {
+        eyebrow: eyebrowInput ? eyebrowInput.value.trim() : (data.portfolioPage?.eyebrow || ''),
+        heroTitle: heroTitleInput ? heroTitleInput.value.trim() : (data.portfolioPage?.heroTitle || ''),
+        sectionTitle: sectionTitleInput ? sectionTitleInput.value.trim() : (data.portfolioPage?.sectionTitle || '')
+    };
 
     document.querySelectorAll('.portfolio-edit').forEach(block => {
         const rawUrl = block.querySelector('.portfolio-video')?.value;
