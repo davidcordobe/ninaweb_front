@@ -165,34 +165,6 @@ async function deleteServiceImage(filename) {
     }
 }
 
-// Subir video de portafolio
-async function uploadPortfolioVideo(file) {
-    if (!file) throw new Error('No se seleccionó video');
-
-    // Asegurar token actualizado
-    if (!authToken) {
-        authToken = localStorage.getItem('adminToken');
-    }
-    if (!authToken) throw new Error('No autenticado');
-
-    const formData = new FormData();
-    formData.append('video', file);
-
-    const response = await fetch(`${API_BASE_URL}/api/portfolio/upload-video`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${authToken}`
-        },
-        body: formData
-    });
-
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `Error HTTP ${response.status}`);
-    }
-
-    return response.json();
-}
 
 // Obtener datos de página
 async function getPageData() {
@@ -1621,14 +1593,9 @@ function addPortfolioItem(item = {}) {
             <textarea rows="3" class="portfolio-description" placeholder="Contexto del video">${item.description || ''}</textarea>
         </div>
         <div class="form-group">
-            <label>Subir video (MP4/MOV/WEBM) o pegar URL</label>
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                <input type="file" class="portfolio-video-file" accept="video/mp4,video/quicktime,video/webm" style="flex: 1 1 220px;">
-                <button type="button" class="upload-portfolio-video-btn" style="flex: 0 0 auto;">Subir y usar</button>
-            </div>
-            <div class="portfolio-video-upload-status" style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.35rem;"></div>
+            <label>Link del video (YouTube, Vimeo, Drive o CDN)</label>
             <input type="url" class="portfolio-video" placeholder="https://www.youtube.com/watch?v=..." value="${normalizedVideoUrl || ''}" style="margin-top: 0.35rem;">
-            <small class="input-hint">Puedes pegar un enlace (YouTube, CDN) o subir un archivo; si subes, se guarda en el servidor y se autocompleta el campo.</small>
+            <small class="input-hint">Solo enlaces externos. Sube el video a tu plataforma y pega la URL aquí.</small>
         </div>
         <div class="form-group">
             <label>Miniatura (opcional)</label>
@@ -1644,35 +1611,6 @@ function addPortfolioItem(item = {}) {
 
     container.appendChild(wrapper);
 
-    // Wire upload button to backend video upload
-    const fileInput = wrapper.querySelector('.portfolio-video-file');
-    const urlInput = wrapper.querySelector('.portfolio-video');
-    const statusEl = wrapper.querySelector('.portfolio-video-upload-status');
-    const uploadBtn = wrapper.querySelector('.upload-portfolio-video-btn');
-
-    if (uploadBtn && fileInput && urlInput) {
-        uploadBtn.addEventListener('click', async () => {
-            try {
-                const file = fileInput.files?.[0];
-                if (!file) {
-                    statusEl.textContent = 'Selecciona un archivo primero.';
-                    statusEl.style.color = 'var(--text-light)';
-                    return;
-                }
-
-                statusEl.textContent = 'Subiendo video...';
-                statusEl.style.color = 'var(--text-light)';
-                const result = await uploadPortfolioVideo(file);
-                urlInput.value = result.url || result.videoUrl || '';
-                statusEl.textContent = '✓ Video subido y asignado.';
-                statusEl.style.color = 'var(--primary)';
-            } catch (error) {
-                console.error('Error al subir video:', error.message);
-                statusEl.textContent = `Error: ${error.message}`;
-                statusEl.style.color = '#d9534f';
-            }
-        });
-    }
 }
 
 // Guardar portafolio
