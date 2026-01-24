@@ -223,6 +223,7 @@ function mergeWithBackups(data = {}) {
             description: 'Transformo ideas en contenido visual impactante...'
         },
         about: { text1: '', text2: '', features: [] },
+        portfolioIntro: '',
         services: [],
         portfolio: [],
         testimonials: [],
@@ -270,6 +271,7 @@ function mergeWithBackups(data = {}) {
         hero: pickObject(data.hero, local.hero, defaults.hero),
         about: pickObject(data.about, local.about, defaults.about),
         services: pickArray(data.services, local.services, defaults.services),
+        portfolioIntro: typeof data.portfolioIntro === 'string' ? data.portfolioIntro : (typeof local.portfolioIntro === 'string' ? local.portfolioIntro : defaults.portfolioIntro),
         portfolio: pickArray(data.portfolio, local.portfolio, portfolioBackup),
         testimonials: pickArray(data.testimonials, local.testimonials, defaults.testimonials),
         contact: pickObject(data.contact, local.contact, defaults.contact),
@@ -716,6 +718,12 @@ async function loadPageData() {
 }
 
 function applyPageData(data) {
+    // Intro portafolio
+    const portfolioIntroEl = document.getElementById('portfolioIntro');
+    if (portfolioIntroEl && typeof data.portfolioIntro === 'string') {
+        portfolioIntroEl.textContent = data.portfolioIntro;
+    }
+
     // Cargar Hero
     if (data.hero) {
         const heroTitle = document.querySelector('.hero-title');
@@ -1165,8 +1173,25 @@ function applyAdminPanelData(data) {
         featuresContainer.appendChild(featureDiv);
     });
 
-    // Cargar imágenes disponibles del backend
-    loadAvailableImages();
+    // Intro de portafolio editable
+    const portfolioContainer = document.getElementById('portfolioContainer');
+    if (portfolioContainer) {
+        let introBlock = document.getElementById('portfolioIntroBlock');
+        if (!introBlock) {
+            introBlock = document.createElement('div');
+            introBlock.id = 'portfolioIntroBlock';
+            introBlock.className = 'form-group';
+            introBlock.innerHTML = `
+                <label>Introducción del portafolio</label>
+                <textarea rows="3" id="portfolioIntroInput" placeholder="Escribe una breve presentación">${data.portfolioIntro || ''}</textarea>
+                <p class="input-hint">Se muestra encima de los videos.</p>
+            `;
+            portfolioContainer.parentElement?.insertBefore(introBlock, portfolioContainer);
+        } else {
+            const introInput = introBlock.querySelector('#portfolioIntroInput');
+            if (introInput) introInput.value = data.portfolioIntro || '';
+        }
+    }
 
     // Services
     const servicesContainer = document.getElementById('servicesContainer');
@@ -1176,7 +1201,6 @@ function applyAdminPanelData(data) {
         serviceDiv.className = 'service-edit';
         const imageSize = service.imageSize || 'mediano'; // Tamaño por defecto
         const normalizedPreview = normalizeImageUrl(service.image);
-        const imagePreview = normalizedPreview ? `<img src="${normalizedPreview}" alt="preview" style="max-width: ${imageSize}; max-height: ${imageSize}; margin: 0.5rem 0; border-radius: 8px; object-fit: cover;">` : '';
         serviceDiv.innerHTML = `
             <div class="form-group">
                 <label>Título del Servicio</label>
@@ -1187,18 +1211,8 @@ function applyAdminPanelData(data) {
                 <textarea rows="3" class="service-desc-${index}" placeholder="Descripción">${service.description || ''}</textarea>
             </div>
             <div class="form-group">
-                <label>Imagen del Servicio</label>
-                <div style="margin-bottom: 1rem;">
-                    <details style="cursor: pointer;">
-                        <summary style="padding: 0.5rem; background: var(--bg-light); border-radius: 4px; user-select: none;">
-                            📁 Ver imágenes disponibles en el servidor
-                        </summary>
-                        <div class="available-images-${index}" id="available-images-${index}" style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-light); border-radius: 4px; max-height: 300px; overflow-y: auto;">
-                            <div style="text-align: center; color: var(--text-light);">Cargando imágenes...</div>
-                        </div>
-                    </details>
-                </div>
-                <input type="file" class="service-image-${index}" accept="image/*" placeholder="O selecciona una imagen nueva">
+                <label>Imagen del Servicio (URL, ej. Imgur)</label>
+                <input type="url" class="service-image-url-${index}" placeholder="https://i.imgur.com/imagen.jpg" value="${normalizedPreview || ''}">
                 <div style="margin-top: 0.5rem;">
                     <label style="display: block; margin-bottom: 0.5rem;">
                         Tamaño de la imagen:
@@ -1212,7 +1226,6 @@ function applyAdminPanelData(data) {
                         </select>
                     </label>
                 </div>
-                ${imagePreview}
             </div>
             <div class="form-group">
                 <label>Link - Más Información</label>
@@ -1253,12 +1266,8 @@ function applyAdminPanelData(data) {
         testimonialDiv.className = 'testimonial-edit';
         testimonialDiv.innerHTML = `
             <div class="form-group">
-                <label>Foto del testimonio</label>
-                <div class="testimonial-image-preview ${normalizedImage ? '' : 'empty'}">
-                    ${normalizedImage ? `<img src="${normalizedImage}" alt="Foto">` : 'Sin foto cargada'}
-                </div>
-                <input type="file" accept="image/*" class="testimonial-image-${index}" data-existing-image="${normalizedImage || ''}">
-                <p class="input-hint">Sube una imagen cuadrada; se guarda en el backend para cualquier dispositivo.</p>
+                <label>Foto del testimonio (URL, ej. Imgur)</label>
+                <input type="url" class="testimonial-image-url-${index}" value="${normalizedImage || ''}" placeholder="https://i.imgur.com/imagen.jpg">
             </div>
             <label>
                 <input type="checkbox" ${testimonial.active !== false ? 'checked' : ''} class="testimonial-active-${index}"> Activo
@@ -1267,22 +1276,6 @@ function applyAdminPanelData(data) {
             <hr>
         `;
         testimonialsContainer.appendChild(testimonialDiv);
-
-        const fileInput = testimonialDiv.querySelector(`.testimonial-image-${index}`);
-        const preview = testimonialDiv.querySelector('.testimonial-image-preview');
-        if (fileInput && preview) {
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        preview.innerHTML = `<img src="${ev.target.result}" alt="Preview">`;
-                        preview.classList.remove('empty');
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
     });
 
     // Contact
@@ -1388,48 +1381,13 @@ async function saveServices() {
     // Usar for loop para mantener el orden y esperar cada iteración
     for (let index = 0; index < serviceElements.length; index++) {
         const el = serviceElements[index];
-        const imageInput = el.querySelector(`.service-image-${index}`);
-        let imageUrl = null;
-
-        // Primero verificar si se seleccionó una imagen disponible del servidor
-        const selectedImageUrl = imageInput?.dataset?.selectedImageUrl;
-
-        if (selectedImageUrl) {
-            // Usar la imagen seleccionada del servidor
-            imageUrl = selectedImageUrl;
-            console.log(`✅ Usando imagen del servidor: ${selectedImageUrl}`);
-        } else if (imageInput && imageInput.files && imageInput.files[0]) {
-            // Si hay archivo nuevo, procesarlo
-            try {
-                showLoading(`Comprimiendo imagen (${index + 1}/${serviceElements.length})...`);
-
-                // Comprimir imagen
-                let compressedFile = await compressImage(imageInput.files[0]);
-
-                showLoading(`Subiendo imagen (${index + 1}/${serviceElements.length})...`);
-
-                // Subir al backend
-                const result = await uploadServiceImage(compressedFile);
-                imageUrl = result.url || result.imageUrl;
-                console.log(`✅ Imagen ${index + 1} guardada:`, imageUrl);
-            } catch (error) {
-                console.error(`Error al procesar imagen ${index + 1}:`, error);
-                // Si la imagen ya tiene una URL previa, mantenerla
-                const existingService = data.services?.[index];
-                imageUrl = existingService?.image || null;
-            }
-        } else {
-            // Si no hay archivo nuevo, mantener la imagen anterior si existe
-            const existingService = data.services?.[index];
-            imageUrl = existingService?.image || null;
-        }
-
-        const normalizedImage = normalizeImageUrl(imageUrl);
+        const imageUrlInput = el.querySelector(`.service-image-url-${index}`);
+        const imageUrl = normalizeImageUrl(imageUrlInput?.value || '');
 
         services.push({
             title: el.querySelector(`.service-title-${index}`).value,
             description: el.querySelector(`.service-desc-${index}`).value,
-            image: normalizedImage,
+            image: imageUrl,
             imageSize: el.querySelector(`.service-image-size-${index}`)?.value || '200px',
             learnMoreLink: el.querySelector(`.service-learn-more-${index}`)?.value || '',
             purchaseLink: el.querySelector(`.service-purchase-${index}`)?.value || '',
@@ -1462,18 +1420,8 @@ function addNewService() {
             <textarea rows="3" class="service-desc-${newIndex}" placeholder="Descripción"></textarea>
         </div>
         <div class="form-group">
-            <label>Imagen del Servicio</label>
-            <div class="image-preview-container" id="preview-container-${newIndex}">
-                <div style="color: var(--text-light); font-size: 0.9rem;">
-                    📁 Haz clic o arrastra una imagen aquí
-                </div>
-            </div>
-            <input type="file" 
-                   class="service-image-${newIndex}" 
-                   accept="image/*" 
-                   id="service-image-input-${newIndex}"
-                   placeholder="Selecciona una imagen"
-                   style="display: none;">
+            <label>Imagen del Servicio (URL, ej. Imgur)</label>
+            <input type="url" class="service-image-url-${newIndex}" placeholder="https://i.imgur.com/imagen.jpg">
             <div style="margin-top: 0.5rem;">
                 <label style="display: block; margin-bottom: 0.5rem;">
                     Tamaño de la imagen:
@@ -1487,13 +1435,6 @@ function addNewService() {
                     </select>
                 </label>
             </div>
-            <div class="upload-progress" id="progress-${newIndex}">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill-${newIndex}"></div>
-                </div>
-                <div class="progress-text" id="progress-text-${newIndex}">0%</div>
-            </div>
-            <div class="preview-info" id="preview-info-${newIndex}"></div>
         </div>
         <div class="form-group">
             <label>Link - Más Información</label>
@@ -1510,54 +1451,6 @@ function addNewService() {
         <hr>
     `;
     container.appendChild(serviceDiv);
-
-    // Agregar event listeners para preview
-    const fileInput = serviceDiv.querySelector(`#service-image-input-${newIndex}`);
-    const previewContainer = serviceDiv.querySelector(`#preview-container-${newIndex}`);
-    const previewInfo = serviceDiv.querySelector(`#preview-info-${newIndex}`);
-
-    // Click para seleccionar archivo
-    previewContainer.addEventListener('click', () => fileInput.click());
-
-    // Drag and drop
-    previewContainer.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        previewContainer.style.background = 'rgba(102, 126, 234, 0.1)';
-    });
-
-    previewContainer.addEventListener('dragleave', () => {
-        previewContainer.style.background = '';
-    });
-
-    previewContainer.addEventListener('drop', (e) => {
-        e.preventDefault();
-        previewContainer.style.background = '';
-        if (e.dataTransfer.files[0]) {
-            fileInput.files = e.dataTransfer.files;
-            showImagePreview(fileInput, newIndex);
-        }
-    });
-
-    // Event listener para cambiar tamaño en tiempo real
-    const imageSizeSelect = serviceDiv.querySelector(`.service-image-size-${newIndex}`);
-    if (imageSizeSelect) {
-        imageSizeSelect.addEventListener('change', () => {
-            const previewImg = previewContainer.querySelector('img');
-            if (previewImg) {
-                const newSize = imageSizeSelect.value;
-                const isCircular = parseInt(newSize) <= 150;
-                const borderRadius = isCircular ? '50%' : '12px';
-
-                previewImg.style.maxWidth = newSize;
-                previewImg.style.maxHeight = newSize;
-                previewImg.style.objectFit = 'cover';
-                previewImg.style.borderRadius = borderRadius;
-            }
-        });
-    }
-
-    // Cambio de archivo
-    fileInput.addEventListener('change', () => showImagePreview(fileInput, newIndex));
 }
 
 // Renderizar portafolio en el panel
@@ -1626,6 +1519,8 @@ async function savePortfolio() {
     }
 
     const entries = [];
+    const introInput = document.getElementById('portfolioIntroInput');
+    const introText = introInput ? introInput.value : data.portfolioIntro || '';
 
     document.querySelectorAll('.portfolio-edit').forEach(block => {
         const rawUrl = block.querySelector('.portfolio-video')?.value;
@@ -1642,6 +1537,7 @@ async function savePortfolio() {
     });
 
     data.portfolio = entries;
+    data.portfolioIntro = introText;
     localStorage.setItem('pageData', JSON.stringify(data));
     localStorage.setItem('portfolioBackup', JSON.stringify(entries));
 
@@ -1655,34 +1551,6 @@ async function savePortfolio() {
         alert(`No se pudo guardar en el servidor: ${error.message}`);
     } finally {
         hideLoading();
-    }
-}
-
-// Mostrar preview de imagen
-function showImagePreview(fileInput, index) {
-    const file = fileInput.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const previewContainer = document.getElementById(`preview-container-${index}`);
-            const previewInfo = document.getElementById(`preview-info-${index}`);
-            const imageSizeSelect = document.querySelector(`.service-image-size-${index}`);
-            const imageSize = imageSizeSelect?.value || '200px';
-            const isCircular = parseInt(imageSize) <= 150;
-            const borderRadius = isCircular ? '50%' : '12px';
-            const fileSize = (file.size / 1024).toFixed(2);
-
-            previewContainer.innerHTML = `
-                <img src="${e.target.result}" class="preview-image" alt="Preview" style="max-width: ${imageSize}; max-height: ${imageSize}; object-fit: cover; border-radius: ${borderRadius};">
-            `;
-            previewContainer.classList.add('has-image');
-            previewInfo.innerHTML = `
-                <strong>${file.name}</strong><br>
-                Tamaño: ${fileSize} KB<br>
-                <span style="font-size: 0.8rem; color: var(--primary);">✓ Listo para guardar</span>
-            `;
-        };
-        reader.readAsDataURL(file);
     }
 }
 
@@ -1705,25 +1573,11 @@ async function saveTestimonials() {
 
     for (let index = 0; index < testimonialElements.length; index++) {
         const el = testimonialElements[index];
-        const fileInput = el.querySelector(`.testimonial-image-${index}`);
-        let imageUrl = fileInput?.dataset?.existingImage || data.testimonials?.[index]?.image || null;
-
-        if (fileInput && fileInput.files && fileInput.files[0]) {
-            try {
-                showLoading(`Subiendo foto (${index + 1}/${testimonialElements.length})...`);
-                const compressedFile = await compressImage(fileInput.files[0], 1200, 1200, 0.82);
-                const uploadResult = await uploadServiceImage(compressedFile);
-                imageUrl = uploadResult.url || uploadResult.imageUrl || imageUrl;
-                if (fileInput) {
-                    fileInput.dataset.existingImage = imageUrl || '';
-                }
-            } catch (error) {
-                console.error('Error subiendo foto del testimonio:', error);
-            }
-        }
+        const urlInput = el.querySelector(`.testimonial-image-url-${index}`);
+        const imageUrl = normalizeImageUrl(urlInput?.value || data.testimonials?.[index]?.image || null);
 
         testimonials.push({
-            image: normalizeImageUrl(imageUrl),
+            image: imageUrl,
             active: el.querySelector(`.testimonial-active-${index}`).checked
         });
     }
@@ -1752,10 +1606,8 @@ function addTestimonial() {
     testimonialDiv.className = 'testimonial-edit';
     testimonialDiv.innerHTML = `
         <div class="form-group">
-            <label>Foto del testimonio</label>
-            <div class="testimonial-image-preview empty">Sin foto cargada</div>
-            <input type="file" accept="image/*" class="testimonial-image-${newIndex}" data-existing-image="">
-            <p class="input-hint">Sube una imagen cuadrada; se guarda en el backend para cualquier dispositivo.</p>
+            <label>Foto del testimonio (URL, ej. Imgur)</label>
+            <input type="url" class="testimonial-image-url-${newIndex}" placeholder="https://i.imgur.com/imagen.jpg">
         </div>
         <label>
             <input type="checkbox" checked class="testimonial-active-${newIndex}"> Activo
@@ -1764,22 +1616,6 @@ function addTestimonial() {
         <hr>
     `;
     container.appendChild(testimonialDiv);
-
-    const fileInput = testimonialDiv.querySelector(`.testimonial-image-${newIndex}`);
-    const preview = testimonialDiv.querySelector('.testimonial-image-preview');
-    if (fileInput && preview) {
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    preview.innerHTML = `<img src="${ev.target.result}" alt="Preview">`;
-                    preview.classList.remove('empty');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
 }
 
 // Guardar Contacto

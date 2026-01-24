@@ -19,6 +19,14 @@ function setStatus(msg) {
     portfolioStatus.style.display = msg ? 'block' : 'none';
 }
 
+function renderPortfolioIntro(text) {
+    const introEl = document.getElementById('portfolioIntro');
+    if (introEl) {
+        introEl.textContent = text || '';
+        introEl.style.display = text ? 'block' : 'none';
+    }
+}
+
 function normalizeImageUrl(url) {
     if (!url) return url;
     const localhostBases = [
@@ -234,6 +242,7 @@ async function loadPortfolio() {
         }
 
         renderPortfolio(data.portfolio || []);
+        renderPortfolioIntro(data.portfolioIntro || '');
         setStatus('');
     } catch (error) {
         console.error('Error al cargar portafolio:', error);
